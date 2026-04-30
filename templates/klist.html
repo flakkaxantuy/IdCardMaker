@@ -1,0 +1,140 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<h1 class="text-orange-500 text-center text-lg font-bold">ID Card Maker</h1>
+<img 
+  src="/static/logo.png" 
+  class="fixed top-4 left-4 w-14 h-14 z-50 bounce-soft opacity-80 hover:opacity-100 transition"
+/>
+<br>
+<br>
+<div class="flex items-center border-b border-slate-700 w-full">
+
+    <div class="flex space-x-1">
+        <a href="/kandidat/list"
+            class="px-2 py-1 bg-white text-orange-500 font-serif italic font-semibold rounded-t-md border border-b-0 border-gray-300">
+            Pending
+        </a>
+
+        <a href="/kandidat/history"
+            class="px-2 py-1 text-gray-500 font-serif italic hover:text-orange-500 hover:bg-gray-100 rounded-t-md">
+            History
+        </a>
+    </div>
+
+    <div class="ml-auto px-2">
+        <input type="text" placeholder="Search..." class="border px-4 py-1 rounded text-xs w-56 ">
+    </div>
+
+</div>
+<br>
+<table class="mx-auto border-white text-white table-fixed w-full">
+    <tr class="border-b border-white">
+        <th class="px-4 py-2 font-serif">Nama</th>
+        <th class="px-4 py-2 font-serif">NIK</th>
+        <th class="px-4 py-2 font-serif">Ukuran Seragam</th>
+        <th class="px-4 py-2 font-serif">Jenis Kelamin</th>
+        <th class="px-4 py-2 font-serif">Lokasi Kerja</th>
+        <th class="px-4 py-2 font-serif">Upload Foto</th>
+        <th class="px-4 py-2 nameInput font-serif">BPO</th>
+        <th class="px-4 py-2 font-serif">Tipe Pemesanan</th>
+        <th class="px-4 py-2 font-serif">Action</th>
+    </tr>
+  </div>
+    {% for kandidat in kandidat_list %}
+    <form id="kandidatform-{{ loop.index }}" 
+          method="POST" 
+          action="/kandidat/list" 
+          enctype="multipart/form-data">
+    </form>
+    <tr class="border-b border-white">
+        <th class="px-4 py-2 font-normal text-sm ">
+            {{ kandidat[0] }}
+            <input type="hidden" name="nama" value="{{ kandidat[0] }}" form="kandidatform-{{ loop.index }}">
+        </th>
+        <th class="px-4 py-2 text-xs"><input type="text" class="text-black rounded py-1 font-normal text-xs" name="nik"
+                form="kandidatform-{{ loop.index }}" placeholder="Masukkan NIK Karyawan" required></th>
+        <th class="px-1 py-1 font-normal text-m">
+            {{ kandidat[1] }}
+            <input type="hidden" name="sizebaju" value="{{ kandidat[1] }}" form="kandidatform-{{ loop.index }}">
+        </th>
+        <th class="px-1 py-1 font-normal text-m">
+            {{ kandidat[2] }}
+            <input type="hidden" name="jeniskelamin" value="{{ kandidat[2] }}" form="kandidatform-{{ loop.index }}">
+        </th>
+        <th class="px-6 py-1">
+            <select name="lokasi" class="border py-1 rounded text-black text-xs font-normal"
+                form="kandidatform-{{ loop.index }}" required>
+                <option value="" disabled selected hidden class="text-xs rounded">Pilih Lokasi Kerja</option>
+                {% for item in lokasi %}
+                <option value="{{ item[1] }}" class="text-orange-500 text-xs">{{ item[1] }}</option>
+                {% endfor %}
+            </select>
+        </th>
+        <th>
+            <input type="file" id="fileInput-{{ loop.index }}" accept="image/jpeg" class="w-32 text-xs" name="img"
+                form="kandidatform-{{ loop.index }}">
+        </th>
+        <th class="px-2 py-1"><input type="text" class="text-black rounded py-1 font-normal text-xs truncate " name="bpo"
+                placeholder="Masukkan BPO" form="kandidatform-{{ loop.index }}" required></th>
+        <th class="px-4 py-2 font-normal">
+            <select class="text-black rounded px-2 py-1 text-xs " name="tipepemesanan"
+                form="kandidatform-{{ loop.index }}" required>
+                <option value="" disabled selected class="text-black text-sm">Jenis ID Card</option>
+                <option value="baru">Karyawan Baru</option>
+                <option value="rusak">Rusak</option>
+                <option value="hilang">Hilang</option>
+                <option value="dummy">Dummy</option>
+            </select>
+        </th>
+        <th class="px-4 py-2"><button
+                class="text-white bg-orange-500 rounded px-2 py-2 text-xs font-normal cursor-pointer hover:bg-orange-600 transition-colors"
+                form="kandidatform-{{ loop.index }}" type="submit">Submit</button>
+                <button class="bg-red-500 text-white rounded px-2 py-2 text-xs" type="button" onclick="openModal('{{ kandidat[0] }}', '{{ kandidat[1] }}')">Hapus</button>      
+            </th>
+    </tr>
+
+    {% else %}
+    <tr class="border-b border-white">
+        <th colspan="8" class="px-4 py-4 text-center font-normal">Tidak ada data kandidat.</th>
+    </tr>
+    {% endfor %}
+</table>
+
+<!-- Overlay -->
+<div id="deleteModal" class="fixed inset-0 hidden items-center justify-center bg-black/50 z-50">
+
+  <!-- Modal Box -->
+  <div class="bg-slate-800 text-white p-6 rounded-xl shadow-xl text-center w-80">
+    <h2 class="text-lg font-semibold mb-4">Yakin Mau Hapus?</h2>
+
+    <div class="flex justify-center gap-3">
+    <form id="deleteform" method="POST" action="/kandidat/delete">
+        <input type="hidden" name="nama" id="deleteNama">
+        <input type="hidden" name="sizebaju" id="deleteSize">
+      <button class="bg-red-500 px-4 py-2 rounded" type="submit">
+        Ya
+      </button>
+    </form>
+      <button onclick="closeModal()" class="bg-gray-400 px-4 py-2 rounded">
+        Tidak
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+    function openModal(nama, sizebaju) {
+    document.getElementById("deleteNama").value = nama;
+    document.getElementById("deleteSize").value = sizebaju;
+
+    document.getElementById("deleteModal").classList.remove("hidden");
+    document.getElementById("deleteModal").classList.add("flex");
+    }
+
+    function closeModal() {
+    document.getElementById("deleteModal").classList.add("hidden");
+    }
+</script>
+{% endblock content %}

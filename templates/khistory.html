@@ -1,0 +1,336 @@
+{% extends "layout.html" %}
+{% block content %}
+<h1 class="text-orange-500 text-center text-lg font-bold">ID Card Maker</h1>
+<img 
+  src="/static/logo.png" 
+  class="fixed top-4 left-4 w-14 h-14 z-50 bounce-soft opacity-80 hover:opacity-100 transition"
+/>
+<br>
+<br>
+<div class="flex items-center border-b border-slate-700 w-full">
+
+    <div class="flex space-x-1">
+        <a href="/kandidat/list"
+           class="px-2 py-1 text-gray-500 font-serif italic hover:text-orange-500 hover:bg-gray-100 rounded-t-md">
+            Pending
+        </a>
+        
+        <a href="/kandidat/history"
+            class="px-2 py-1 bg-white text-orange-500 font-serif italic font-semibold rounded-t-md border border-b-0 border-gray-300">
+            History
+        </a>
+    </div>
+    <div class="ml-auto px-2">
+        <input 
+            type="text"
+            id="search" 
+            name="search" 
+            placeholder="Search..."
+            value="{{ search or '' }}"
+            class="border px-4 py-1 rounded text-xs w-56 "
+            oninput="liveSearch()"
+        >
+    </div>
+
+
+</div>
+<br>
+    <div id="paginationText" class="text-xs text-gray-300 mb-2">
+        {% if total_data > 0 %}
+        Showing 
+        {{ (page-1)* (limit|int if limit != 'all' else total_data) + 1 }} 
+        -
+        {{ (page-1)*(limit|int if limit != 'all' else total_data) + kandidat_history|length }} 
+        of {{ total_data }} data
+        {% else %}
+        Showing 0 - 0 of 0 data
+        {% endif %}
+        <select onchange="changeLimit(this.value)" 
+        class="border px-2 py-1 text-xs rounded ml-2 text-black">
+
+        <option value="15" {% if limit == "15" %}selected{% endif %}>15</option>
+        <option value="all" {% if limit == "all" %}selected{% endif %}>All</option>
+
+    </select>
+    </div>
+    <table class="mx-auto border-white text-white table-fixed w-full" id="historyTable">
+    <tr class="border-b border-white">
+        <th class="px-4 py-2 font-serif">Nama</th>
+        <th class="px-4 py-2 font-serif">NIK</th>
+        <th class="px-4 py-2 font-serif">
+            Ukuran Seragam
+
+            <span class="relative inline-block">
+                <button onclick="toggleFilter('filter-seragam')" class="ml-1 text-xs">
+                    🔽
+                </button>
+
+                <div id="filter-seragam"
+                    class="hidden absolute right-0 mt-1 bg-white text-black text-xs rounded shadow p-1 z-50 min-w-[100px]">
+                </div>
+            </span>
+        </th>
+        <th class="px-4 py-2 font-serif">
+            Jenis Kelamin
+
+            <span class="relative inline-block">
+            <button onclick="toggleFilter('filter-jenis-kelamin')" class="ml-1 text-xs">
+                    🔽
+            </button>
+
+            <div id="filter-jenis-kelamin"
+                    class="hidden absolute right-0 mt-1 bg-white text-black text-xs rounded shadow p-1 z-50 min-w-[100px]">
+                </div>
+            </span>
+        
+        </th>
+        <th class="px-4 py-2 font-serif">Lokasi Kerja</th>
+        <th class="px-4 py-2 font-serif">Uploaded Foto</th>
+        <th class="px-4 py-2 nameInput font-serif">BPO</th>
+        <th class="px-4 py-2 font-serif">
+            Tipe Pemesanan
+
+            <span class="relative inline-block ml-1">
+                <button 
+                    onclick="toggleFilter('filter-jenis-pemesanan')" 
+                    class="text-xs hover:text-orange-900 transition">
+                    🔽
+                </button>
+
+                <div id="filter-jenis-pemesanan"
+                    class="hidden absolute left-1/2 -translate-x-1/2 top-full mt-2
+                            bg-white text-black text-xs
+                            rounded-lg shadow-xl p-2 z-50
+                            min-w-[120px] border border-gray-200">
+
+                </div>
+            </span>
+        </th>
+        <th class="px-4 py-2 font-serif relative">
+            Tanggal Diproses
+        <span>
+
+            <button onclick="toggleFilter('filter-tanggal')"
+            class="text-xs">
+                🔽
+            </button>
+
+            <div id="filter-tanggal" 
+            class="hidden absolute left-1/2 -translate-x-1/2 top-full mt-2
+                bg-white text-black text-xs
+                rounded-lg shadow-xl p-3 z-50
+                min-w-[200px] border border-gray-200">
+
+                <label class="block mb-1 font-semibold">From:</label>
+                <input type="date" id="dateFrom" value="{{ date_from or '' }}" class="w-full border rounded px-2 py-1 mb-2">
+
+                <label class="block mb-1 font-semibold">To:</label>
+                <input type="date" id="dateTo" value="{{ date_to or '' }}" class="w-full border rounded px-2 py-1 mb-2">
+
+                <button onclick="applyDateFilter()" 
+                    class="w-full bg-orange-500 text-white rounded py-1 mt-1 hover:bg-orange-600">
+                    Apply
+                </button>
+
+                <button onclick="applyDateFilter(true)" 
+                    class="w-full text-xs mt-1 underline">
+                    Reset
+                </button>
+            </div>
+
+        </span>
+        </th>
+        <th class="px-4 py-2 font-serif">Action</th>
+    </tr>
+    {% for kandidathistory in kandidat_history %}
+    <tr class="border-b border-white">
+        <th class="px-4 py-2 font-normal text-sm">{{ kandidathistory[1] }}</th>
+        <th class="px-4 py-2 font-normal text-m">{{ kandidathistory[2] }}</th>
+        <th class="px-1 py-1 font-normal text-m">{{ kandidathistory[3] }}</th>
+        <th class="px-1 py-1 font-normal text-m">{{ kandidathistory[8] }}</th>
+        <th class="px-6 py-1 text-sm">{{ kandidathistory[4] }}</th>
+        <th class="flex justify-center items-center"> 
+            <img src="/static/idcardphoto/{{ kandidathistory[7] }}" class="w-20 h-20 object-cover rounded">
+        </th>
+        <th class="rounded px-2 py-1 font-normal text-sm">{{ kandidathistory[5] }}</th>
+        <th class="px-4 py-2 font-normal">{{ kandidathistory[6] }}</th>
+        <th class="px-4 py-2 font-normal">{{ kandidathistory[9] }}</th>
+        <th class="px-4 py-2 font-normal">
+            <a href="/static/idcardphoto/{{ kandidathistory[7] }}" target="_blank"
+            class="bg-orange-500 hover:bg-orange-600 text-white text-xs px-3 py-1 rounded-md shadow inline-block">
+                View ID Card
+            </a>
+        </th>
+    </tr>
+    {% else %}
+    <tr class="border-b border-white">
+        <th colspan="10" class="px-4 py-4 text-center font-normal">Tidak ada data kandidat.</th>
+    </tr>
+    {% endfor %}
+    </table>
+    <div id="paginationControls" class="flex justify-center mt-4 space-x-2">
+
+    {% if page > 1 %}
+    <button onclick="changePage({{ page-1 }})"
+        class="px-3 py-1 bg-gray-700 text-white hover:bg-gray-600 rounded">Previous</button>
+    {% endif %}
+
+    <span class="text-white text-sm flex items-center">Page {{ page }}</span>
+
+    {% if limit != 'all' and (page * (limit|int)) < total_data %}
+    <button onclick="changePage({{ page+1 }})"
+        class="px-3 py-1 bg-gray-700 text-white hover:bg-gray-600 rounded">Next</button>
+    {% endif %}
+
+    </div>
+
+    <script>
+        let timeout = null;
+
+        function toggleFilter(id)
+        {
+            document.getElementById(id).classList.toggle("hidden");
+        }
+
+
+        function applyFilter(field, value) {
+            const url = new URL(window.location.href);
+
+            if (value) {
+                url.searchParams.set(field, value);
+            } else {
+                url.searchParams.delete(field);
+            }
+            
+            url.searchParams.set("page", 1); // Reset to page 1 when filtering
+
+            window.location.href = url.toString();
+        }
+
+        function liveSearch() 
+        {
+            clearTimeout(timeout);
+
+            timeout = setTimeout(async() => {
+                const query = document.getElementById("search").value;
+
+                const url = new URL(window.location.href);
+                url.searchParams.set("search", query);
+                url.searchParams.set("page", 1); // Reset to page 1 on new search
+
+                const response = await fetch(url.toString());
+                const html = await response.text();
+
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, "text/html");
+
+                const newTable = doc.querySelector("#historyTable");
+                document.querySelector("#historyTable").replaceWith(newTable);
+                
+                const newPaginationText = doc.querySelector("#paginationText");
+                if (newPaginationText && document.querySelector("#paginationText")) {
+                    document.querySelector("#paginationText").replaceWith(newPaginationText);
+                }
+
+                const newPaginationControls = doc.querySelector("#paginationControls");
+                if (newPaginationControls && document.querySelector("#paginationControls")) {
+                    document.querySelector("#paginationControls").replaceWith(newPaginationControls);
+                }
+
+                // Also update the URL so if the user refreshes, they stay on the search term
+                window.history.pushState({}, '', url.toString());
+
+                buildFilters();
+
+            }, 300);
+
+        }
+        function buildFilters() 
+        {
+        
+       const sizes = ["S", "M", "L", "XL", "XXL", "XXXL"];
+
+        sizes.forEach(size => {
+            const div = document.createElement("div");
+            div.textContent = size;
+            div.className = "px-3 py-1 text-left hover:bg-gray-200 cursor-pointer";
+            div.onclick = () => applyFilter("sizebaju", size);
+            document.getElementById("filter-seragam").appendChild(div);
+        });
+
+        const allDiv = document.createElement("div");
+        allDiv.textContent = "All";
+        allDiv.className = "px-3 py-1 text-left font-bold hover:bg-gray-200 cursor-pointer border-t mt-1";
+        allDiv.onclick = () => applyFilter("sizebaju", "");
+        document.getElementById("filter-seragam").appendChild(allDiv);
+
+        const jeniskelamin = ["Pria", "Wanita"];
+        jeniskelamin.forEach(gender => {
+            const div = document.createElement("div");
+            div.textContent = gender;
+            div.className = "px-3 py-1 text-left hover:bg-gray-200 cursor-pointer";
+            div.onclick = () => applyFilter("jeniskelamin", gender);
+            document.getElementById("filter-jenis-kelamin").appendChild(div);
+        });
+        const allgenderDiv = document.createElement("div");
+        allgenderDiv.textContent = "All";
+        allgenderDiv.className = "px-3 py-1 text-left font-bold hover:bg-gray-200 cursor-pointer border-t mt-1";
+        allgenderDiv.onclick = () => applyFilter("jeniskelamin", "");
+        document.getElementById("filter-jenis-kelamin").appendChild(allgenderDiv);
+
+        const jenispemesanan = ["rusak", "baru", "hilang", "dummy"];
+        jenispemesanan.forEach(type => {
+            const div = document.createElement("div");
+            div.textContent = type;
+            div.className = "px-3 py-1 text-left hover:bg-gray-200 cursor-pointer";
+            div.onclick = () => applyFilter("jenispemesanan", type);
+            document.getElementById("filter-jenis-pemesanan").appendChild(div);
+        });
+        const alltypeDiv = document.createElement("div");
+        alltypeDiv.textContent = "All";
+        alltypeDiv.className = "px-3 py-1 text-left font-bold hover:bg-gray-200 cursor-pointer border-t mt-1";
+        alltypeDiv.onclick = () => applyFilter("jenispemesanan", "");
+        document.getElementById("filter-jenis-pemesanan").appendChild(alltypeDiv);
+            }
+
+        function applyDateFilter(reset = false) {
+            const url = new URL(window.location.href);
+
+            if (reset) {
+                url.searchParams.delete("date_from");
+                url.searchParams.delete("date_to");
+            } else {
+                const from = document.getElementById("dateFrom").value;
+                const to = document.getElementById("dateTo").value;
+
+                if (from) url.searchParams.set("date_from", from);
+                else url.searchParams.delete("date_from");
+
+                if (to) url.searchParams.set("date_to", to);
+                else url.searchParams.delete("date_to");
+            }
+            
+            url.searchParams.set("page", 1); // Reset to page 1 when filtering by date
+
+            window.location.href = url.toString();
+        }
+
+    document.addEventListener("DOMContentLoaded", buildFilters);
+
+
+function changePage(page) {
+    const url = new URL(window.location.href);
+    url.searchParams.set("page", page);
+    window.location.href = url.toString();
+}
+function changeLimit(value) {
+    const url = new URL(window.location.href);
+    url.searchParams.set("limit", value);
+    url.searchParams.set("page", 1); // reset to first page
+    window.location.href = url.toString();
+}
+
+
+    </script>
+
+{% endblock content %}

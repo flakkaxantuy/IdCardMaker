@@ -1,0 +1,283 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<!-- The dark overlay (Spotlight effect background) -->
+<div id="darkOverlay" class="fixed inset-0 bg-black/70 z-40 transition-opacity duration-300"></div>
+
+<div
+    class="flex flex-col items-center justify-center gap-6 min-h-screen bg-slate-900 overflow-x-hidden overflow-y-auto relative py-8">
+
+    <!-- The ID Card Container with your custom template -->
+    <div style="background-image: url('/static/template.png');"
+        class="relative shrink-0 w-[380px] h-[600px] bg-cover bg-center rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col items-center">
+
+        <!-- The form overlay -->
+        <form action="/kandidat/form" method="POST" class="w-full h-full flex flex-col items-center relative"
+            id="idCardForm">
+
+            <!-- 1. The Photo Area -->
+            <div
+                class="absolute top-[165px] w-[185px] h-[250px] group rounded flex items-center justify-center overflow-hidden">
+                <!-- Hidden file input -->
+                <!-- <input type="file" id="photoUpload" class="hidden" accept="image/*" onchange="previewImage(event)"> -->
+
+                <!-- The Photo Preview (hidden by default until uploaded) -->
+                <img id="photoPreview" class="absolute w-full h-full object-cover hidden z-10" />
+
+                <!-- Upload text that shows up when hovering over the silhouette -->
+                <!-- <div onclick="document.getElementById('photoUpload').click()"
+                    class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                    <span class="text-white font-bold bg-black/50 px-2 py-1 rounded">Upload Photo</span>
+                </div> -->
+            </div>
+
+            <!-- CHAT BUBBLE POPUP (Initial state is z-50 to sit above overlay) -->
+            <div id="welcomeBubble"
+                class="absolute top-[310px] w-64 bg-white p-4 rounded-2xl shadow-2xl text-center z-50 transition-all duration-300 animate-bounce">
+                <!-- Triangle pointing down directly at the name field -->
+                <div
+                    class="absolute -bottom-3 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[14px] border-t-white">
+                </div>
+
+                <h2 class="text-lg font-bold text-Blue-9999 mb-1">Welcome Greeners !!!</h2>
+                <p class="text-sm mb-1">
+                    Silahkan isi nama Anda di sini
+                </p>
+                <p class="underline text-sm mb-1">Maximal 2 Kata.</p>
+
+                <button type="button" onclick="closeModal()"
+                    class="bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold px-6 py-2 rounded-full w-full transition-colors shadow-md">
+                    Start
+                </button>
+            </div>
+
+            <!-- 2. The First & Sec Name Input -->
+            <!-- High z-index (50) keeps it above the dark overlay, creating a 'hollow' spotlight shape -->
+            <div id="nameContainer" class="absolute top-[460px] w-full px-8 z-50 transition-all duration-300 font-bold">
+                <div class="relative w-full">
+                    <!-- The actual input is transparent but receives typing and manages caret -->
+                    <input type="text" id="nameInput" name="nama" oninput="formatNameInput(this)" autocomplete="off"
+                        spellcheck="false"
+                        class="uppercase w-full text-center text-[26px] text-transparent caret-black bg-white shadow-[0_0_0_6px_rgba(255,255,255,0.4)] border-transparent ring-4 ring-orange-400 focus:bg-white focus:border-b-blue-500 focus:ring-0 focus:outline-none py-1 rounded-lg transition-all"
+                        style="color: transparent; caret-color: black;" placeholder="">
+
+                    <!-- Target div sits EXACTLY on top of the input, pointer events pass through -->
+                    <div
+                        class="absolute inset-0 flex items-center justify-center pointer-events-none text-[26px] uppercase whitespace-pre">
+                        <span id="firstname" class="font-bold text-black"></span><span id="restname"
+                            class="font-normal text-black"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. The NIK Input -->
+            <!-- Positioned exactly where <NIK> is -->
+            <div class="absolute top-[510px] w-full px-12">
+                <input type="text" disabled name="nik"
+                    class="w-full text-center text-xl text-black bg-white/60 border-transparent hover:border-b-gray-400 focus:bg-white focus:border-b-blue-500 focus:ring-0 focus:outline-none transition-colors py-1 rounded"
+                    placeholder="0123456789">
+            </div>
+
+            <!-- 4. Form Actions (Size & Submit) -->
+
+
+            <!-- Error Modal (hidden by default) -->
+            <div id="errorModal"
+                class="absolute inset-0 flex items-center justify-center bg-black/60 z-[60] opacity-0 pointer-events-none transition-opacity duration-300">
+                <div class="bg-white p-6 rounded-2xl shadow-2xl text-center w-[85%] scale-95 transition-all duration-300"
+                    id="errorModalContent">
+                    <div class="mb-4 text-red-500">
+                        <!-- Alert Icon -->
+                        <svg class="w-12 h-12 mx-auto flex-shrink-0" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                            </path>
+                        </svg>
+                    </div>
+                    <h2 class="text-xl font-bold pb-3 mb-3 border-gray-200 underline">Nama Maximal 2 kata.</h2>
+
+                    <div class="text-left bg-red-50 p-3 rounded-lg mb-5 border border-red-100">
+                        <p class="text-xs text-red-600 font-semibold mb-1">Contoh yang salah:</p>
+                        <p class="text-sm text-red-500 line-through">TIJJANI REIJNDERS LEKATOMPESSY ❌</p>
+                        <p class="text-xs text-green-600 font-semibold mt-3 mb-1">Contoh yang benar:</p>
+                        <p class="text-sm text-green-600 font-bold">TIJJANI REIJNDERS ✔️</p>
+                        <p class="text-sm text-green-600 font-bold">TIJJANI LEKATOMPESSY ✔️</p>
+                    </div>
+
+                    <button type="button" onclick="closeErrorModal()"
+                        class="bg-red-500 hover:bg-red-600 text-white text-sm font-semibold px-6 py-2 rounded-full w-full transition-colors shadow-md">
+                        Ok
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Actions Below the Card -->
+    <div class="w-[380px] flex items-stretch gap-4 z-50">
+
+        <!-- LEFT: STACKED DROPDOWNS -->
+        <div class="w-1/2 flex flex-col gap-4">
+
+            <!-- Ukuran -->
+            <div class="relative border border-white/20 rounded-xl overflow-hidden bg-white/10 shadow-lg backdrop-blur-md">
+                <select name="sizebaju" form="idCardForm" required
+                    class="w-full bg-transparent hover:bg-white/5 text-white font-bold py-3 pl-4 pr-8 focus:border-blue-500 focus:outline-none transition-all text-sm cursor-pointer appearance-none text-center">
+                    <option value="" disabled selected class="text-black">👕 Ukuran</option>
+                    <option value="S" class="text-black">S</option>
+                    <option value="M" class="text-black">M</option>
+                    <option value="L" class="text-black">L</option>
+                    <option value="XL" class="text-black">XL</option>
+                    <option value="XXL" class="text-black">XXL</option>
+                    <option value="XXXL" class="text-black">XXXL</option>
+                </select>
+
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-white/70">
+                    <svg class="fill-current h-4 w-4" viewBox="0 0 20 20">
+                        <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Jenis Kelamin -->
+            <div class="relative border border-white/20 rounded-xl overflow-hidden bg-white/10 shadow-lg backdrop-blur-md">
+                <select name="jeniskelamin" form="idCardForm" required
+                    class="w-full bg-transparent hover:bg-white/5 text-white font-bold py-3 pl-4 pr-8 focus:border-blue-500 focus:outline-none transition-all text-sm cursor-pointer appearance-none text-center">
+                    <option value="" disabled selected class="text-black">Jenis Kelamin</option>
+                    <option value="Pria" class="text-black">Pria</option>
+                    <option value="Wanita" class="text-black">Wanita</option>
+                </select>
+
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-white/70">
+                    <svg class="fill-current h-4 w-4" viewBox="0 0 20 20">
+                        <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                    </svg>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT: BIG SUBMIT BUTTON -->
+        <button type="submit" form="idCardForm"
+            class="w-1/2 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg text-sm border border-blue-500 focus:ring-4 focus:ring-blue-500/30 focus:outline-none flex justify-center items-center">
+            Submit
+        </button>
+
+    </div>
+
+</div>
+
+<!-- JavaScript to handle effects -->
+<script>
+    function closeModal() {
+        // Fade out the dark overlay
+        const darkOverlay = document.getElementById("darkOverlay");
+        darkOverlay.classList.remove("bg-black/70");
+        darkOverlay.classList.add("opacity-0", "pointer-events-none");
+
+        // Hide the bubble chat
+        const welcomeBubble = document.getElementById("welcomeBubble");
+        welcomeBubble.classList.add("opacity-0", "scale-95", "pointer-events-none");
+
+        // Remove the spotlight focus from the name container
+        const nameContainer = document.getElementById("nameContainer");
+        nameContainer.classList.remove("z-50");
+
+        // Revert the name input back to a normal transparent appearance
+        const nameInput = document.getElementById("nameInput");
+        nameInput.classList.remove(
+            "bg-white",
+            "shadow-[0_0_0_6px_rgba(255,255,255,0.4)]",
+            "ring-4",
+            "ring-orange-400",
+            "rounded-lg"
+        );
+        nameInput.classList.add("bg-white/60");
+
+        // Disable the animation from stopping by removing element later or just keeping it hidden
+        // Automatically place cursor in the name field for the user!
+        setTimeout(() => {
+            nameInput.focus();
+        }, 100);
+    }
+
+    function previewImage(event) {
+        const reader = new FileReader();
+        reader.onload = function () {
+            const output = document.getElementById('photoPreview');
+            output.src = reader.result;
+            output.classList.remove('hidden'); // Show the image!
+        };
+        if (event.target.files[0]) {
+            reader.readAsDataURL(event.target.files[0]);
+        }
+    }
+
+    function showErrorModal() {
+        // Blur the input to hide keyboard on mobile
+        document.getElementById("nameInput").blur();
+
+        const errorModal = document.getElementById("errorModal");
+        const errorModalContent = document.getElementById("errorModalContent");
+
+        errorModal.classList.remove("opacity-0", "pointer-events-none");
+        errorModalContent.classList.remove("scale-95");
+        errorModalContent.classList.add("scale-100");
+    }
+
+    function closeErrorModal() {
+        const errorModal = document.getElementById("errorModal");
+        const errorModalContent = document.getElementById("errorModalContent");
+
+        errorModal.classList.add("opacity-0", "pointer-events-none");
+        errorModalContent.classList.remove("scale-100");
+        errorModalContent.classList.add("scale-95");
+
+        // Automatically focus back to the input
+        setTimeout(() => {
+            document.getElementById("nameInput").focus();
+        }, 100);
+    }
+
+    function formatNameInput(el) {
+        // Enforce uppercase
+        el.value = el.value.toUpperCase();
+        let val = el.value;
+
+        // Prevent more than one space
+        let firstSpaceIndex = val.indexOf(' ');
+        if (firstSpaceIndex !== -1) {
+            let secondSpaceIndex = val.indexOf(' ', firstSpaceIndex + 1);
+            if (secondSpaceIndex !== -1) {
+                // A second space was typed or pasted! Strip it and everything after it.
+                val = val.substring(0, secondSpaceIndex);
+                el.value = val;
+
+                // Trigger the warning modal
+                showErrorModal();
+            }
+        }
+
+        // Prepare to slice into bold / normal based on the single allowed space
+        let spaceIndex = val.indexOf(' ');
+
+        let first = "";
+        let rest = "";
+
+        if (spaceIndex === -1) {
+            // No spaces yet, everything is the first name
+            first = val;
+        } else {
+            // Found a space, split into first (bold) and rest (normal)
+            first = val.substring(0, spaceIndex);
+            rest = val.substring(spaceIndex); // keep the space here to separate visually
+        }
+
+        // Output to our display spans
+        document.getElementById("firstname").textContent = first;
+        document.getElementById("restname").textContent = rest;
+    }
+</script>
+
+{% endblock content %}
