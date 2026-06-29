@@ -1,0 +1,54 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: europa-db
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME:-idcardmaker}
+      POSTGRES_USER: ${DB_USER:-flakka}
+      POSTGRES_PASSWORD: ${DB_PASS:-Psqlkayannyaenakeuy#9}
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - traefik-net
+
+  app:
+    build: .
+    container_name: europa-app
+    restart: always
+    environment:
+      DB_HOST: europa-db
+      DB_NAME: ${DB_NAME:-idcardmaker}
+      DB_USER: ${DB_USER:-flakka}
+      DB_PASS: ${DB_PASS:-Psqlkayannyaenakeuy#9}
+      DB_PORT: 5432
+      SMTP_HOST: ${SMTP_HOST:-mail.spil.co.id}
+      SMTP_PORT: ${SMTP_PORT:-465}
+      SMTP_USER: ${SMTP_USER:-notif.pe@spil.co.id}
+      SMTP_PASS: ${SMTP_PASS:-hWN-5j_jDx}
+    depends_on:
+      - db
+    labels:
+      - "traefik.enable=true"
+      # Public Router (px.spil.co.id)
+      - "traefik.http.routers.europa-public.rule=Host(`px.spil.co.id`) && (PathPrefix(`/app/europa/form`) || PathPrefix(`/app/europa/submitted`) || PathPrefix(`/app/europa/static`))"
+      - "traefik.http.routers.europa-public.entrypoints=web"
+      # Admin Router (pe.spil.co.id)
+      - "traefik.http.routers.europa-admin.rule=Host(`pe.spil.co.id`) && (PathPrefix(`/app/europa/list`) || PathPrefix(`/app/europa/history`) || PathPrefix(`/app/europa/delete`) || PathPrefix(`/app/europa/static`))"
+      - "traefik.http.routers.europa-admin.entrypoints=websecure"
+      - "traefik.http.routers.europa-admin.tls=true"
+      # Service
+      - "traefik.http.services.europa-svc.loadbalancer.server.port=8000"
+    volumes:
+      - ./static/uploads:/app/static/uploads
+      - ./static/idcardphoto:/app/static/idcardphoto
+    networks:
+      - traefik-net
+
+volumes:
+  postgres_data:
+
+networks:
+  traefik-net:
+    external: true

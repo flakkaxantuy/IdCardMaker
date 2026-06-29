@@ -1,17 +1,11 @@
 import psycopg2
-
-hostname = 'localhost'
-database = 'idcardmaker'
-username = 'flakka'
-pwd = 'Psqlkayannyaenakeuy#9'
-port_id = 5432
-conn = None
-cur = None
+import os
 
 def get_db_connection():
     return psycopg2.connect(
-            host = hostname,
-            dbname = database,
-            user = username,
-            password = pwd,
-            port = port_id)
+        host=os.getenv('DB_HOST', 'localhost'),
+        dbname=os.getenv('DB_NAME', 'idcardmaker'),
+        user=os.getenv('DB_USER', 'flakka'),
+        password=os.getenv('DB_PASS', 'Psqlkayannyaenakeuy#9'),
+        port=os.getenv('DB_PORT', '5432')
+    )

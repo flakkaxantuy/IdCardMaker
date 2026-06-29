@@ -1,115 +1,254 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<h1 class="text-orange-500 text-center text-lg font-bold">ID Card Maker</h1>
+<div class="max-w-[1400px] mx-auto px-6 py-8 relative">
+    <h1 class="text-orange-500 text-center text-2xl font-black tracking-tight mb-4">ID Card Maker</h1>
 <img 
-  src="/static/logo.png" 
+  src="/app/europa/static/logo.png" 
   class="fixed top-4 left-4 w-14 h-14 z-50 bounce-soft opacity-80 hover:opacity-100 transition"
 />
 <br>
 <br>
-<div class="flex items-center border-b border-slate-700 w-full">
+<div class="flex flex-col md:flex-row md:items-center border-b border-slate-700 w-full pb-2 gap-3">
 
-    <div class="flex space-x-1">
-        <a href="/kandidat/list"
-            class="px-2 py-1 bg-white text-orange-500 font-serif italic font-semibold rounded-t-md border border-b-0 border-gray-300">
-            Pending
+    <div class="flex space-x-1 overflow-x-auto shrink-0">
+        <a href="/app/europa/list"
+            class="px-3 py-1.5 bg-white text-orange-500 font-serif italic font-semibold rounded-t-md border border-b-0 border-gray-300 flex items-center gap-1.5 shadow-sm text-sm whitespace-nowrap">
+            Pending Submission
         </a>
 
-        <a href="/kandidat/history"
-            class="px-2 py-1 text-gray-500 font-serif italic hover:text-orange-500 hover:bg-gray-100 rounded-t-md">
+        <a href="/app/europa/history"
+            class="px-3 py-1.5 text-gray-400 font-serif italic hover:text-orange-500 hover:bg-gray-800 rounded-t-md text-sm transition-all duration-150 whitespace-nowrap">
             History
         </a>
     </div>
 
-    <div class="ml-auto px-2">
-        <input type="text" placeholder="Search..." class="border px-4 py-1 rounded text-xs w-56 ">
+    <div class="md:ml-auto px-2 flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
+        <input type="text" id="searchPending" oninput="searchCandidates()" placeholder="Search pending..." class="border border-slate-700 bg-slate-800 px-4 py-1.5 rounded text-xs w-full sm:w-48 text-white focus:outline-none focus:ring-1 focus:ring-orange-500">
+        
+        <button onclick="openAddCandidateModal()" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold text-xs px-3 py-1.5 rounded-lg shadow-md transition duration-150 transform hover:scale-105 active:scale-95 flex items-center gap-1 whitespace-nowrap">
+            <span>➕</span> Tambah Kandidat
+        </button>
     </div>
 
 </div>
-<br>
-<table class="mx-auto border-white text-white table-fixed w-full">
-    <tr class="border-b border-white">
-        <th class="px-4 py-2 font-serif">Nama</th>
-        <th class="px-4 py-2 font-serif">NIK</th>
-        <th class="px-4 py-2 font-serif">Ukuran Seragam</th>
-        <th class="px-4 py-2 font-serif">Jenis Kelamin</th>
-        <th class="px-4 py-2 font-serif">Lokasi Kerja</th>
-        <th class="px-4 py-2 font-serif">Upload Foto</th>
-        <th class="px-4 py-2 nameInput font-serif">BPO</th>
-        <th class="px-4 py-2 font-serif">Tipe Pemesanan</th>
-        <th class="px-4 py-2 font-serif">Action</th>
-    </tr>
-  </div>
-    {% for kandidat in kandidat_list %}
-    <form id="kandidatform-{{ loop.index }}" 
-          method="POST" 
-          action="/kandidat/list" 
-          enctype="multipart/form-data">
-    </form>
-    <tr class="border-b border-white">
-        <th class="px-4 py-2 font-normal text-sm ">
-            {{ kandidat[0] }}
-            <input type="hidden" name="nama" value="{{ kandidat[0] }}" form="kandidatform-{{ loop.index }}">
-        </th>
-        <th class="px-4 py-2 text-xs"><input type="text" class="text-black rounded py-1 font-normal text-xs" name="nik"
-                form="kandidatform-{{ loop.index }}" placeholder="Masukkan NIK Karyawan" required></th>
-        <th class="px-1 py-1 font-normal text-m">
-            {{ kandidat[1] }}
-            <input type="hidden" name="sizebaju" value="{{ kandidat[1] }}" form="kandidatform-{{ loop.index }}">
-        </th>
-        <th class="px-1 py-1 font-normal text-m">
-            {{ kandidat[2] }}
-            <input type="hidden" name="jeniskelamin" value="{{ kandidat[2] }}" form="kandidatform-{{ loop.index }}">
-        </th>
-        <th class="px-6 py-1">
-            <select name="lokasi" class="border py-1 rounded text-black text-xs font-normal"
-                form="kandidatform-{{ loop.index }}" required>
-                <option value="" disabled selected hidden class="text-xs rounded">Pilih Lokasi Kerja</option>
-                {% for item in lokasi %}
-                <option value="{{ item[1] }}" class="text-orange-500 text-xs">{{ item[1] }}</option>
-                {% endfor %}
-            </select>
-        </th>
-        <th>
-            <input type="file" id="fileInput-{{ loop.index }}" accept="image/jpeg" class="w-32 text-xs" name="img"
-                form="kandidatform-{{ loop.index }}">
-        </th>
-        <th class="px-2 py-1"><input type="text" class="text-black rounded py-1 font-normal text-xs truncate " name="bpo"
-                placeholder="Masukkan BPO" form="kandidatform-{{ loop.index }}" required></th>
-        <th class="px-4 py-2 font-normal">
-            <select class="text-black rounded px-2 py-1 text-xs " name="tipepemesanan"
-                form="kandidatform-{{ loop.index }}" required>
-                <option value="" disabled selected class="text-black text-sm">Jenis ID Card</option>
-                <option value="baru">Karyawan Baru</option>
-                <option value="rusak">Rusak</option>
-                <option value="hilang">Hilang</option>
-                <option value="dummy">Dummy</option>
-            </select>
-        </th>
-        <th class="px-4 py-2"><button
-                class="text-white bg-orange-500 rounded px-2 py-2 text-xs font-normal cursor-pointer hover:bg-orange-600 transition-colors"
-                form="kandidatform-{{ loop.index }}" type="submit">Submit</button>
-                <button class="bg-red-500 text-white rounded px-2 py-2 text-xs" type="button" onclick="openModal('{{ kandidat[0] }}', '{{ kandidat[1] }}')">Hapus</button>      
-            </th>
-    </tr>
 
+<div class="hidden md:block overflow-x-auto w-full border border-slate-700 rounded-xl bg-slate-900/40 backdrop-blur-md shadow-2xl mt-6">
+    <table id="pendingTable" class="w-full text-white min-w-0 border-collapse table-fixed">
+        <thead>
+            <tr class="border-b border-slate-750 bg-slate-800/60 text-slate-300">
+                <th class="px-2 py-2 font-serif text-[10px] xl:text-xs font-semibold tracking-wider text-left w-[14%]">Nama</th>
+                <th class="px-1.5 py-2 font-serif text-[10px] xl:text-xs font-semibold tracking-wider text-left w-[12%]">NIK</th>
+                <th class="px-1 py-2 font-serif text-[10px] xl:text-xs font-semibold tracking-wider text-center w-[7%]">Ukuran</th>
+                <th class="px-1 py-2 font-serif text-[10px] xl:text-xs font-semibold tracking-wider text-center w-[7%]">Gender</th>
+                <th class="px-1.5 py-2 font-serif text-[10px] xl:text-xs font-semibold tracking-wider text-left w-[13%]">Lokasi Kerja</th>
+                <th class="px-1.5 py-2 font-serif text-[10px] xl:text-xs font-semibold tracking-wider text-center w-[11%]">Upload Foto</th>
+                <th class="px-1.5 py-2 font-serif text-[10px] xl:text-xs font-semibold tracking-wider text-left w-[12%]">BPO</th>
+                <th class="px-1.5 py-2 font-serif text-[10px] xl:text-xs font-semibold tracking-wider text-left w-[11%]">Tipe Pemesanan</th>
+                <th class="px-1.5 py-2 font-serif text-[10px] xl:text-xs font-semibold tracking-wider text-center w-[13%]">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for kandidat in kandidat_list %}
+            <form id="kandidatform-{{ loop.index }}" 
+                  method="POST" 
+                  action="/app/europa/list" 
+                  enctype="multipart/form-data">
+            </form>
+            <tr class="border-b border-slate-800 bg-slate-900/20 hover:bg-slate-800/30 transition-colors">
+                <td class="px-2 py-1.5 text-[10px] xl:text-xs text-left align-middle">
+                    <span class="font-semibold text-white block truncate" title="{{ kandidat[0] }}">{{ kandidat[0] }}</span>
+                    {% if kandidat[7] %}
+                    <span class="text-[8px] bg-yellow-600/80 text-white px-1 py-0.5 rounded font-semibold uppercase tracking-wider">Draft</span>
+                    {% else %}
+                    <span class="text-[8px] bg-slate-700 text-slate-300 px-1 py-0.5 rounded font-semibold uppercase tracking-wider">Pending</span>
+                    {% endif %}
+                    <input type="hidden" name="nama" value="{{ kandidat[0] }}" form="kandidatform-{{ loop.index }}">
+                </td>
+                <td class="px-1.5 py-1.5 align-middle">
+                    <input type="text" class="text-black rounded py-0.5 px-1 xl:py-1 xl:px-1.5 font-normal text-[10px] xl:text-xs w-full bg-white border border-slate-700 focus:outline-none focus:ring-1 focus:ring-orange-500" name="nik"
+                        form="kandidatform-{{ loop.index }}" placeholder="NIK" 
+                        value="{% if kandidat[3] %}{{ kandidat[3] }}{% endif %}" required>
+                </td>
+                <td class="px-1 py-1.5 text-[10px] xl:text-xs text-center text-slate-300 align-middle">
+                    {{ kandidat[1] }}
+                    <input type="hidden" name="sizebaju" value="{{ kandidat[1] }}" form="kandidatform-{{ loop.index }}">
+                </td>
+                <td class="px-1 py-1.5 text-[10px] xl:text-xs text-center text-slate-300 align-middle">
+                    {{ kandidat[2] }}
+                    <input type="hidden" name="jeniskelamin" value="{{ kandidat[2] }}" form="kandidatform-{{ loop.index }}">
+                </td>
+                <td class="px-1.5 py-1.5 align-middle">
+                    <select name="lokasi" class="border border-slate-700 py-0.5 px-1 xl:py-1 xl:px-1.5 rounded text-black text-[10px] xl:text-xs font-normal bg-white focus:outline-none focus:ring-1 focus:ring-orange-500 w-full"
+                        form="kandidatform-{{ loop.index }}" required>
+                        <option value="" disabled {% if not kandidat[4] %}selected{% endif %} hidden class="text-xs rounded">Lokasi</option>
+                        {% for item in lokasi %}
+                        <option value="{{ item[1] }}" {% if kandidat[4] == item[1] %}selected{% endif %} class="text-orange-500 text-xs">{{ item[1] }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td class="px-1.5 py-1.5 align-middle">
+                    <div class="flex items-center justify-center gap-1">
+                        {% if kandidat[8] %}
+                        <img src="/app/europa/static/uploads/{{ kandidat[8] }}" class="w-5 h-5 xl:w-6 xl:h-6 object-cover rounded border border-orange-500/50 shadow-sm shrink-0" title="Foto Terupload">
+                        {% endif %}
+                        <input type="file" id="fileInput-{{ loop.index }}" accept="image/jpeg" class="w-full text-[8px] xl:text-[9px] text-slate-400 file:mr-1 file:py-0.5 file:px-1 file:rounded file:border-0 file:text-[8px] file:font-semibold file:bg-slate-800 file:text-slate-300 hover:file:bg-slate-750 cursor-pointer" name="img"
+                            form="kandidatform-{{ loop.index }}">
+                    </div>
+                </td>
+                <td class="px-1.5 py-1.5 align-middle">
+                    <input type="text" class="text-black rounded py-0.5 px-1 xl:py-1 xl:px-1.5 font-normal text-[10px] xl:text-xs w-full bg-white border border-slate-700 focus:outline-none focus:ring-1 focus:ring-orange-500 truncate" name="bpo"
+                        placeholder="BPO" form="kandidatform-{{ loop.index }}" 
+                        value="{% if kandidat[5] %}{{ kandidat[5] }}{% endif %}" required>
+                </td>
+                <td class="px-1.5 py-1.5 align-middle">
+                    <select class="text-black rounded py-0.5 px-1 xl:py-1 xl:px-1.5 text-[10px] xl:text-xs bg-white border border-slate-700 focus:outline-none focus:ring-1 focus:ring-orange-500 w-full" name="tipepemesanan"
+                        form="kandidatform-{{ loop.index }}" onchange="handleTipePemesananChange(this, '{{ loop.index }}')" required>
+                        <option value="" disabled {% if not kandidat[6] %}selected{% endif %} class="text-black text-xs">Tipe</option>
+                        <option value="baru" {% if kandidat[6] == "baru" %}selected{% endif %}>Baru</option>
+                        <option value="rusak" {% if kandidat[6] == "rusak" %}selected{% endif %}>Rusak</option>
+                        <option value="hilang" {% if kandidat[6] == "hilang" %}selected{% endif %}>Hilang</option>
+                        <option value="dummy" {% if kandidat[6] == "dummy" %}selected{% endif %}>Dummy</option>
+                    </select>
+                </td>
+                <td class="px-1.5 py-1.5 text-center align-middle">
+                    <div class="flex flex-wrap items-center justify-center gap-0.5 w-full">
+                        <button class="text-white bg-orange-500 hover:bg-orange-600 rounded px-1 py-0.5 text-[9px] xl:text-[10px] font-semibold shadow-sm transition-all duration-150 cursor-pointer hover:scale-105 active:scale-95 flex items-center justify-center"
+                            form="kandidatform-{{ loop.index }}" type="submit" name="action" value="submit" title="Process kandidat ini ke history dan kirim email">
+                            Process
+                        </button>
+                        <button class="text-white bg-teal-600 hover:bg-teal-700 rounded px-1 py-0.5 text-[9px] xl:text-[10px] font-semibold shadow-sm transition-all duration-150 cursor-pointer hover:scale-105 active:scale-95 flex items-center justify-center"
+                            type="button" onclick="triggerPreview('{{ loop.index }}')">
+                            Preview
+                        </button>
+                        <button class="text-white bg-blue-600 hover:bg-blue-700 rounded px-1 py-0.5 text-[9px] xl:text-[10px] font-semibold shadow-sm transition-all duration-150 cursor-pointer hover:scale-105 active:scale-95 flex items-center justify-center"
+                            form="kandidatform-{{ loop.index }}" type="submit" name="action" value="save_draft" formnovalidate>Draft</button>
+                        <button class="text-white bg-red-500 hover:bg-red-600 rounded px-1 py-0.5 text-[9px] xl:text-[10px] font-semibold shadow-sm transition-all duration-150 cursor-pointer hover:scale-105 active:scale-95 flex items-center justify-center" 
+                            type="button" onclick="openModal('{{ kandidat[0] }}', '{{ kandidat[1] }}')">Hapus</button>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr class="border-b border-slate-800">
+                <td colspan="9" class="px-4 py-8 text-center font-normal text-slate-400">Tidak ada data kandidat pending.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Mobile & Zoomed Card View (shown on screens < 768px) -->
+<div id="pendingCardList" class="block md:hidden space-y-4 mt-6">
+    {% for kandidat in kandidat_list %}
+    <form id="kandidatform-mobile-{{ loop.index }}" method="POST" action="/app/europa/list" enctype="multipart/form-data" class="bg-slate-900/60 border border-slate-700 rounded-xl p-4 shadow-xl space-y-3">
+        <!-- Candidate Title & Badge -->
+        <div class="flex justify-between items-start border-b border-slate-800 pb-2">
+            <div>
+                <h3 class="font-bold text-white text-base truncate max-w-[180px]">{{ kandidat[0] }}</h3>
+                <span class="text-[9px] text-slate-400">Nama Kandidat</span>
+            </div>
+            {% if kandidat[7] %}
+            <span class="text-[9px] bg-yellow-600/80 text-white px-2 py-0.5 rounded font-semibold uppercase tracking-wider">Draft</span>
+            {% else %}
+            <span class="text-[9px] bg-slate-700 text-slate-300 px-2 py-0.5 rounded font-semibold uppercase tracking-wider">Pending</span>
+            {% endif %}
+        </div>
+
+        <!-- Hidden inputs for name, baju, gender -->
+        <input type="hidden" name="nama" value="{{ kandidat[0] }}">
+        <input type="hidden" name="sizebaju" value="{{ kandidat[1] }}">
+        <input type="hidden" name="jeniskelamin" value="{{ kandidat[2] }}">
+
+        <!-- Gender & Size Badges -->
+        <div class="flex gap-2">
+            <span class="text-[11px] bg-slate-850 px-2 py-1 rounded text-slate-300">👕 Ukuran: <strong class="text-white">{{ kandidat[1] }}</strong></span>
+            <span class="text-[11px] bg-slate-850 px-2 py-1 rounded text-slate-300">👤 Gender: <strong class="text-white">{{ kandidat[2] }}</strong></span>
+        </div>
+
+        <!-- Form fields inside the card -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            <!-- NIK Input -->
+            <div class="space-y-1">
+                <label class="text-slate-400 font-medium text-[10px]">NIK Karyawan</label>
+                <input type="text" class="text-black rounded py-1 px-1.5 font-normal text-xs w-full bg-white border border-slate-700 focus:outline-none focus:ring-1 focus:ring-orange-500" name="nik"
+                    placeholder="NIK Karyawan" 
+                    value="{% if kandidat[3] %}{{ kandidat[3] }}{% endif %}" required>
+            </div>
+
+            <!-- BPO Input -->
+            <div class="space-y-1">
+                <label class="text-slate-400 font-medium text-[10px]">BPO</label>
+                <input type="text" class="text-black rounded py-1 px-1.5 font-normal text-xs w-full bg-white border border-slate-700 focus:outline-none focus:ring-1 focus:ring-orange-500 truncate" name="bpo"
+                    placeholder="BPO" 
+                    value="{% if kandidat[5] %}{{ kandidat[5] }}{% endif %}" required>
+            </div>
+
+            <!-- Lokasi Kerja Dropdown -->
+            <div class="space-y-1">
+                <label class="text-slate-400 font-medium text-[10px]">Lokasi Kerja</label>
+                <select name="lokasi" class="border border-slate-700 py-1 px-1.5 rounded text-black text-xs font-normal bg-white focus:outline-none focus:ring-1 focus:ring-orange-500 w-full" required>
+                    <option value="" disabled {% if not kandidat[4] %}selected{% endif %} hidden>Pilih Lokasi Kerja</option>
+                    {% for item in lokasi %}
+                    <option value="{{ item[1] }}" {% if kandidat[4] == item[1] %}selected{% endif %}>{{ item[1] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Tipe Pemesanan Dropdown -->
+            <div class="space-y-1">
+                <label class="text-slate-400 font-medium text-[10px]">Tipe Pemesanan</label>
+                <select id="select-mobile-{{ loop.index }}" class="text-black rounded px-1.5 py-1 text-xs bg-white border border-slate-700 focus:outline-none focus:ring-1 focus:ring-orange-500 w-full" name="tipepemesanan"
+                    onchange="handleTipePemesananChange(this, '{{ loop.index }}')" required>
+                    <option value="" disabled {% if not kandidat[6] %}selected{% endif %}>Tipe</option>
+                    <option value="baru" {% if kandidat[6] == "baru" %}selected{% endif %}>Baru</option>
+                    <option value="rusak" {% if kandidat[6] == "rusak" %}selected{% endif %}>Rusak</option>
+                    <option value="hilang" {% if kandidat[6] == "hilang" %}selected{% endif %}>Hilang</option>
+                    <option value="dummy" {% if kandidat[6] == "dummy" %}selected{% endif %}>Dummy</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Upload Foto field -->
+        <div class="bg-slate-850/50 p-2 rounded border border-slate-750 space-y-1.5">
+            <label class="text-[10px] text-slate-400 font-medium block">Upload Foto</label>
+            <div class="flex items-center gap-2">
+                {% if kandidat[8] %}
+                <img src="/app/europa/static/uploads/{{ kandidat[8] }}" class="w-8 h-8 object-cover rounded border border-orange-500/50 shadow-sm shrink-0" title="Foto Terupload">
+                {% endif %}
+                <input type="file" id="fileInputMobile-{{ loop.index }}" accept="image/jpeg" class="w-full text-[10px] text-slate-400 file:mr-1 file:py-0.5 file:px-1 file:rounded file:border-0 file:text-[9px] file:font-semibold file:bg-slate-800 file:text-slate-300 hover:file:bg-slate-750 cursor-pointer" name="img">
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex flex-wrap items-center justify-end gap-1.5 pt-2 border-t border-slate-800">
+            <button class="text-white bg-orange-500 hover:bg-orange-600 rounded px-2.5 py-1 text-[11px] font-semibold shadow-sm transition-all duration-150 cursor-pointer"
+                type="submit" name="action" value="submit" title="Process kandidat ini ke history dan kirim email">
+                Process
+            </button>
+            <button class="text-white bg-teal-600 hover:bg-teal-700 rounded px-2.5 py-1 text-[11px] font-semibold shadow-sm transition-all duration-150 cursor-pointer"
+                type="button" onclick="triggerPreview('{{ loop.index }}')">
+                Preview
+            </button>
+            <button class="text-white bg-blue-600 hover:bg-blue-700 rounded px-2.5 py-1 text-[11px] font-semibold shadow-sm transition-all duration-150 cursor-pointer"
+                type="submit" name="action" value="save_draft" formnovalidate>Draft</button>
+            <button class="text-white bg-red-500 hover:bg-red-600 rounded px-2.5 py-1 text-[11px] font-semibold shadow-sm transition-all duration-150 cursor-pointer" 
+                type="button" onclick="openModal('{{ kandidat[0] }}', '{{ kandidat[1] }}')">Hapus</button>
+        </div>
+    </form>
     {% else %}
-    <tr class="border-b border-white">
-        <th colspan="8" class="px-4 py-4 text-center font-normal">Tidak ada data kandidat.</th>
-    </tr>
+    <div class="text-center py-8 text-slate-400 bg-slate-900/40 border border-slate-700 rounded-xl">
+        Tidak ada data kandidat pending.
+    </div>
     {% endfor %}
-</table>
+</div>
 
 <!-- Overlay -->
 <div id="deleteModal" class="fixed inset-0 hidden items-center justify-center bg-black/50 z-50">
-
   <!-- Modal Box -->
   <div class="bg-slate-800 text-white p-6 rounded-xl shadow-xl text-center w-80">
     <h2 class="text-lg font-semibold mb-4">Yakin Mau Hapus?</h2>
-
     <div class="flex justify-center gap-3">
-    <form id="deleteform" method="POST" action="/kandidat/delete">
+    <form id="deleteform" method="POST" action="/app/europa/delete">
         <input type="hidden" name="nama" id="deleteNama">
         <input type="hidden" name="sizebaju" id="deleteSize">
       <button class="bg-red-500 px-4 py-2 rounded" type="submit">
@@ -121,20 +260,646 @@
       </button>
     </div>
   </div>
-
 </div>
 
-<script>
-    function openModal(nama, sizebaju) {
-    document.getElementById("deleteNama").value = nama;
-    document.getElementById("deleteSize").value = sizebaju;
+<!-- Admin Login Modal -->
+<div id="adminLoginModal" class="fixed inset-0 hidden items-center justify-center bg-black/60 z-50 transition-opacity duration-300">
+    <div class="bg-slate-800 border border-slate-700 text-white p-6 rounded-xl shadow-2xl text-center w-96 transform scale-95 transition-all duration-300" id="adminLoginModalContent">
+        <h2 class="text-lg font-bold mb-2 text-orange-500">🔒 Login Admin Mode</h2>
+        <p class="text-xs text-gray-400 mb-4">Masukkan password admin untuk memproses & menyetujui ID Card</p>
+        
+        <form action="/app/europa/list/toggle" method="POST" id="adminLoginForm">
+            <input type="hidden" name="action" value="login">
+            <div class="mb-4">
+                <input type="password" name="password" placeholder="Password Admin" required
+                    class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 transition-colors">
+            </div>
+            <div class="flex justify-center gap-3">
+                <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded text-xs font-semibold shadow transition-all transform hover:scale-105 active:scale-95">
+                    Login
+                </button>
+                <button type="button" onclick="closeAdminLoginModal()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded text-xs font-semibold shadow transition-all transform hover:scale-105 active:scale-95">
+                    Batal
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
-    document.getElementById("deleteModal").classList.remove("hidden");
-    document.getElementById("deleteModal").classList.add("flex");
+<!-- Add Candidate Modal -->
+<div id="addCandidateModal" class="fixed inset-0 hidden items-center justify-center bg-black/60 z-50 transition-opacity duration-300">
+    <div class="bg-slate-800 border border-slate-700 text-white p-6 rounded-xl shadow-2xl text-left w-[480px] max-h-[90vh] overflow-y-auto transform scale-95 transition-all duration-300" id="addCandidateModalContent">
+        <div class="flex items-center justify-between border-b border-slate-700 pb-3 mb-4">
+            <h2 class="text-md font-bold text-orange-500 flex items-center gap-1">
+                <span>➕</span> Tambah Kandidat Manual (Lengkap)
+            </h2>
+            <button onclick="closeAddCandidateModal()" class="text-gray-400 hover:text-white font-bold text-lg focus:outline-none">&times;</button>
+        </div>
+        
+        <form action="/app/europa/list/add_manual" method="POST" id="addCandidateForm" enctype="multipart/form-data">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-2">
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Nama Lengkap</label>
+                    <input type="text" name="nama" placeholder="Masukkan Nama Kandidat (Maks 2 Kata)" required
+                        oninput="formatManualNameInput(this)"
+                        class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 transition-colors uppercase">
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">NIK Karyawan (Opsional)</label>
+                    <input type="text" name="nik" placeholder="Masukkan NIK Karyawan"
+                        class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 transition-colors">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Ukuran Seragam</label>
+                    <select name="sizebaju" required
+                        class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 transition-colors">
+                        <option value="" disabled selected>Pilih Ukuran</option>
+                        <option value="S">S</option>
+                        <option value="M">M</option>
+                        <option value="L">L</option>
+                        <option value="XL">XL</option>
+                        <option value="2XL">2XL</option>
+                        <option value="3XL">3XL</option>
+                        <option value="4XL">4XL</option>
+                        <option value="5XL">5XL</option>
+                        <option value="6XL">6XL</option>
+                        <option value="7XL">7XL</option>
+                        <option value="8XL">8XL</option>
+                        <option value="9XL">9XL</option>
+                        <option value="10XL">10XL</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Jenis Kelamin</label>
+                    <select name="jeniskelamin" required
+                        class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 transition-colors">
+                        <option value="" disabled selected>Pilih Jenis Kelamin</option>
+                        <option value="Pria">Pria</option>
+                        <option value="Wanita">Wanita</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Lokasi Kerja</label>
+                    <select name="lokasi" required
+                        class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 transition-colors">
+                        <option value="" disabled selected>Pilih Lokasi Kerja</option>
+                        {% for item in lokasi %}
+                        <option value="{{ item[1] }}">{{ item[1] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">BPO (Opsional)</label>
+                    <input type="text" name="bpo" placeholder="Masukkan BPO"
+                        class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 transition-colors">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Tipe Pemesanan</label>
+                    <select name="tipepemesanan" required
+                        class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 transition-colors">
+                        <option value="" disabled selected>Pilih Tipe Pemesanan</option>
+                        <option value="baru">Karyawan Baru</option>
+                        <option value="rusak">Rusak</option>
+                        <option value="hilang">Hilang</option>
+                        <option value="dummy">Dummy</option>
+                    </select>
+                </div>
+
+                <div class="col-span-2 mt-2">
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Upload Foto Kandidat</label>
+                    <input type="file" name="img" accept="image/jpeg"
+                        class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-slate-400 file:mr-3 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-slate-300 hover:file:bg-slate-750 cursor-pointer">
+                </div>
+            </div>
+            
+            <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-700">
+                <button type="button" onclick="closeAddCandidateModal()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded text-xs font-semibold shadow transition-all transform hover:scale-105 active:scale-95">
+                    Batal
+                </button>
+                <button type="submit" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white px-4 py-2 rounded text-xs font-semibold shadow transition-all transform hover:scale-105 active:scale-95">
+                    Simpan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Preview Photo Modal -->
+<div id="previewPhotoModal" class="fixed inset-0 hidden items-center justify-center bg-black/75 z-[60] transition-opacity duration-300">
+    <div class="bg-slate-800 border border-slate-700 text-white p-6 rounded-xl shadow-2xl text-center w-[420px] transform scale-95 transition-all duration-300" id="previewPhotoModalContent">
+        <div class="flex items-center justify-between border-b border-slate-700 pb-3 mb-4">
+            <h2 class="text-md font-bold text-orange-500 flex items-center gap-1">
+                <span>👁️</span> Preview Foto Kandidat
+            </h2>
+            <button onclick="closePreviewPhotoModal()" class="text-gray-400 hover:text-white font-bold text-lg focus:outline-none">&times;</button>
+        </div>
+        
+        <!-- Tabs for Luar vs Dalam -->
+        <div class="flex justify-center gap-2 mb-4 bg-slate-900/60 p-1 rounded-lg border border-slate-700 shadow-inner">
+            <button onclick="switchPreviewTab('dalam')" id="btnTabDalam" class="flex-1 py-1.5 px-3 text-xs font-semibold rounded-md transition-all">
+                Foto Sesuai Template
+            </button>
+            <button onclick="switchPreviewTab('luar')" id="btnTabLuar" class="flex-1 py-1.5 px-3 text-xs font-semibold rounded-md transition-all">
+                Luar (Full Card)
+            </button>
+        </div>
+        
+        <!-- Photo display container with a nice loading indicator -->
+        <div class="relative w-full h-[450px] bg-slate-900 rounded-lg flex items-center justify-center overflow-hidden border border-slate-700 shadow-inner">
+            <div id="previewPhotoLoading" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/80 z-10">
+                <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-orange-500 mb-2"></div>
+                <span class="text-xs text-gray-400 font-medium">Generating preview...</span>
+            </div>
+            <img id="previewPhotoImage" class="w-full h-full object-contain hidden" alt="Candidate Preview Photo">
+        </div>
+        
+        <p class="text-[11px] text-gray-400 mt-3 italic" id="previewDescription">
+            *Menampilkan foto beserta NIK/NIM saja ("tanpa luaran" frame ID card).
+        </p>
+        
+        <div class="mt-4 flex justify-center">
+            <button onclick="closePreviewPhotoModal()" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-full text-xs font-semibold shadow transition-all transform hover:scale-105 active:scale-95">
+                Tutup
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Refresh Warning Modal -->
+<div id="refreshWarningModal" class="fixed inset-0 hidden items-center justify-center bg-black/75 z-[70] transition-opacity duration-300">
+    <div class="bg-slate-800 border border-slate-700 text-white p-6 rounded-xl shadow-2xl text-center w-[450px] transform scale-95 transition-all duration-300" id="refreshWarningModalContent">
+        <div class="w-12 h-12 rounded-full bg-amber-900/50 border border-amber-500/30 flex items-center justify-center mx-auto mb-3">
+            <span class="text-xl text-amber-500">⚠️</span>
+        </div>
+        <h2 class="text-md font-bold mb-2 text-amber-500">Peringatan: Halaman Telah Disegarkan</h2>
+        <p class="text-xs text-slate-300 mb-4 leading-relaxed">
+            Karena halaman baru saja direfresh/disegarkan, file foto yang Anda pilih sebelumnya di browser telah dikosongkan demi keamanan browser. 
+            Silakan upload kembali file foto untuk kandidat di bawah ini:
+        </p>
+        
+        <div id="refreshWarningList" class="bg-slate-900/60 rounded-lg p-3 text-left max-h-48 overflow-y-auto mb-4 border border-slate-700 space-y-2">
+            <!-- Will be populated dynamically by JavaScript -->
+        </div>
+
+        <p class="text-[11px] text-gray-400 mb-4 italic">
+            *Pastikan Anda menekan tombol "Draft" (Simpan Draft) atau "Process" setelah memilih file foto dan mengisi NIK/BPO agar perubahan disimpan secara permanen.
+        </p>
+
+        <div class="flex justify-center">
+            <button onclick="closeRefreshWarningModal()" class="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2 rounded-lg text-xs font-semibold shadow transition-all transform hover:scale-105 active:scale-95 cursor-pointer">
+                Saya Mengerti
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- JSON Data Island to pass python variables safely without breaking editor syntax highlighting -->
+<script id="candidatesNoPhotoData" type="application/json">
+[
+    {% set ns = namespace(first=true) %}
+    {% for kandidat in kandidat_list %}
+        {% if not kandidat[8] %}
+            {% if not ns.first %},{% endif %}
+            {% set ns.first = false %}
+            {
+                "nama": {{ kandidat[0]|tojson }},
+                "tipepemesanan": {{ (kandidat[6] or '')|tojson }},
+                "is_draft": {{ 'true' if kandidat[7] else 'false' }}
+            }
+        {% endif %}
+    {% endfor %}
+]
+</script>
+
+<script>
+    let currentPreviewIndex = null;
+    let currentPreviewType = 'dalam';
+
+    document.addEventListener("DOMContentLoaded", () => {
+        // Detect if the page was reloaded/refreshed
+        const isReload = (
+            performance.getEntriesByType("navigation")[0]?.type === "reload" ||
+            performance.navigation?.type === 1
+        );
+
+        if (isReload) {
+            const dataEl = document.getElementById("candidatesNoPhotoData");
+            const candidatesNoPhoto = dataEl ? JSON.parse(dataEl.textContent || "[]") : [];
+            
+            if (candidatesNoPhoto.length > 0) {
+                const listContainer = document.getElementById("refreshWarningList");
+                listContainer.innerHTML = "";
+                candidatesNoPhoto.forEach((cand) => {
+                    const div = document.createElement("div");
+                    div.className = "flex justify-between items-center bg-slate-800/80 p-2 rounded border border-slate-700 text-xs";
+                    
+                    const nameSpan = document.createElement("span");
+                    nameSpan.className = "font-semibold text-white";
+                    nameSpan.textContent = cand.nama;
+                    
+                    const badgeContainer = document.createElement("div");
+                    badgeContainer.className = "flex gap-1.5";
+                    
+                    const tipeSpan = document.createElement("span");
+                    tipeSpan.className = "text-[9px] bg-slate-700 text-slate-300 px-1.5 py-0.5 rounded uppercase font-bold";
+                    tipeSpan.textContent = cand.tipepemesanan || 'Pending';
+                    
+                    const statusSpan = document.createElement("span");
+                    if (cand.is_draft) {
+                        statusSpan.className = "text-[9px] bg-yellow-600/80 text-white px-1.5 py-0.5 rounded uppercase font-bold";
+                        statusSpan.textContent = "Draft";
+                    } else {
+                        statusSpan.className = "text-[9px] bg-slate-600 text-slate-300 px-1.5 py-0.5 rounded uppercase font-bold";
+                        statusSpan.textContent = "Pending";
+                    }
+                    
+                    badgeContainer.appendChild(tipeSpan);
+                    badgeContainer.appendChild(statusSpan);
+                    
+                    div.appendChild(nameSpan);
+                    div.appendChild(badgeContainer);
+                    listContainer.appendChild(div);
+                });
+                
+                openRefreshWarningModal();
+            }
+        }
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('error') === 'password') {
+            alert('Password Admin salah! Silakan coba lagi.');
+            const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            window.history.replaceState({path: cleanUrl}, '', cleanUrl);
+        }
+
+        // Initialize state for each candidate row/card on page load
+        const uniqueIndexes = new Set();
+        document.querySelectorAll('select[name="tipepemesanan"]').forEach((selectEl) => {
+            const formId = selectEl.getAttribute("form");
+            if (formId) {
+                const index = formId.split("-")[1];
+                uniqueIndexes.add(index);
+            } else if (selectEl.id && selectEl.id.startsWith("select-mobile-")) {
+                const index = selectEl.id.split("-")[2];
+                uniqueIndexes.add(index);
+            }
+        });
+        
+        uniqueIndexes.forEach(index => {
+            updateRowState(index);
+        });
+    });
+
+    function openModal(nama, sizebaju) {
+        document.getElementById("deleteNama").value = nama;
+        document.getElementById("deleteSize").value = sizebaju;
+
+        document.getElementById("deleteModal").classList.remove("hidden");
+        document.getElementById("deleteModal").classList.add("flex");
     }
 
     function closeModal() {
-    document.getElementById("deleteModal").classList.add("hidden");
+        document.getElementById("deleteModal").classList.add("hidden");
+    }
+
+    function openAdminLoginModal() {
+        document.getElementById("adminLoginModal").classList.remove("hidden");
+        document.getElementById("adminLoginModal").classList.add("flex");
+        setTimeout(() => {
+            document.getElementById("adminLoginModalContent").classList.remove("scale-95");
+            document.getElementById("adminLoginModalContent").classList.add("scale-100");
+        }, 50);
+    }
+    
+    function closeAdminLoginModal() {
+        document.getElementById("adminLoginModalContent").classList.remove("scale-100");
+        document.getElementById("adminLoginModalContent").classList.add("scale-95");
+        setTimeout(() => {
+            document.getElementById("adminLoginModal").classList.add("hidden");
+            document.getElementById("adminLoginModal").classList.remove("flex");
+        }, 150);
+    }
+    
+    function openAddCandidateModal() {
+        document.getElementById("addCandidateModal").classList.remove("hidden");
+        document.getElementById("addCandidateModal").classList.add("flex");
+        setTimeout(() => {
+            document.getElementById("addCandidateModalContent").classList.remove("scale-95");
+            document.getElementById("addCandidateModalContent").classList.add("scale-100");
+        }, 50);
+    }
+    
+    function closeAddCandidateModal() {
+        document.getElementById("addCandidateModalContent").classList.remove("scale-100");
+        document.getElementById("addCandidateModalContent").classList.add("scale-95");
+        setTimeout(() => {
+            document.getElementById("addCandidateModal").classList.add("hidden");
+            document.getElementById("addCandidateModal").classList.remove("flex");
+        }, 150);
+    }
+
+    function openPreviewPhotoModal() {
+        document.getElementById("previewPhotoModal").classList.remove("hidden");
+        document.getElementById("previewPhotoModal").classList.add("flex");
+        document.getElementById("previewPhotoLoading").classList.remove("hidden");
+        document.getElementById("previewPhotoImage").classList.add("hidden");
+        setTimeout(() => {
+            document.getElementById("previewPhotoModalContent").classList.remove("scale-95");
+            document.getElementById("previewPhotoModalContent").classList.add("scale-100");
+        }, 50);
+    }
+    
+    function closePreviewPhotoModal() {
+        document.getElementById("previewPhotoModalContent").classList.remove("scale-100");
+        document.getElementById("previewPhotoModalContent").classList.add("scale-95");
+        setTimeout(() => {
+            document.getElementById("previewPhotoModal").classList.add("hidden");
+            document.getElementById("previewPhotoModal").classList.remove("flex");
+        }, 150);
+    }
+
+    function openRefreshWarningModal() {
+        document.getElementById("refreshWarningModal").classList.remove("hidden");
+        document.getElementById("refreshWarningModal").classList.add("flex");
+        setTimeout(() => {
+            document.getElementById("refreshWarningModalContent").classList.remove("scale-95");
+            document.getElementById("refreshWarningModalContent").classList.add("scale-100");
+        }, 50);
+    }
+    
+    function closeRefreshWarningModal() {
+        document.getElementById("refreshWarningModalContent").classList.remove("scale-100");
+        document.getElementById("refreshWarningModalContent").classList.add("scale-95");
+        setTimeout(() => {
+            document.getElementById("refreshWarningModal").classList.add("hidden");
+            document.getElementById("refreshWarningModal").classList.remove("flex");
+        }, 150);
+    }
+
+    // Unsaved changes beforeunload safeguard for file uploads
+    window.addEventListener("beforeunload", (event) => {
+        let hasSelectedFiles = false;
+        document.querySelectorAll('input[type="file"]').forEach((input) => {
+            if (input.files && input.files.length > 0) {
+                hasSelectedFiles = true;
+            }
+        });
+        
+        if (hasSelectedFiles) {
+            event.preventDefault();
+            event.returnValue = ""; 
+        }
+    });
+
+    function switchPreviewTab(type) {
+        currentPreviewType = type;
+        
+        const btnDalam = document.getElementById("btnTabDalam");
+        const btnLuar = document.getElementById("btnTabLuar");
+        const descText = document.getElementById("previewDescription");
+        
+        if (type === 'dalam') {
+            btnDalam.className = "flex-1 py-1.5 px-3 text-xs font-semibold rounded-md bg-orange-500 text-white shadow-sm transition-all";
+            btnLuar.className = "flex-1 py-1.5 px-3 text-xs font-semibold rounded-md text-gray-400 hover:text-white hover:bg-slate-700/50 transition-all";
+            descText.textContent = '*Menampilkan foto saja yang sudah terpotong sesuai ukuran frame template SPIL.';
+        } else {
+            btnLuar.className = "flex-1 py-1.5 px-3 text-xs font-semibold rounded-md bg-orange-500 text-white shadow-sm transition-all";
+            btnDalam.className = "flex-1 py-1.5 px-3 text-xs font-semibold rounded-md text-gray-400 hover:text-white hover:bg-slate-700/50 transition-all";
+            descText.textContent = '*Menampilkan preview lengkap ID card ("luar" beserta template dan nama lengkap).';
+        }
+        
+        if (currentPreviewIndex !== null) {
+            loadPreviewImage(currentPreviewIndex, type);
+        }
+    }
+
+    async function loadPreviewImage(index, type) {
+        document.getElementById("previewPhotoLoading").classList.remove("hidden");
+        document.getElementById("previewPhotoImage").classList.add("hidden");
+        
+        const isMobile = window.innerWidth < 768;
+        const formData = new FormData();
+        
+        if (isMobile) {
+            const mobileForm = document.getElementById("kandidatform-mobile-" + index);
+            if (mobileForm) {
+                const namaInput = mobileForm.querySelector('input[name="nama"]');
+                const nikInput = mobileForm.querySelector('input[name="nik"]');
+                const imgInput = document.getElementById("fileInputMobile-" + index);
+                
+                if (namaInput) formData.append("nama", namaInput.value);
+                if (nikInput) formData.append("nik", nikInput.value);
+                formData.append("preview_type", type);
+                if (imgInput && imgInput.files.length > 0) {
+                    formData.append("img", imgInput.files[0]);
+                }
+            }
+        } else {
+            const formId = "kandidatform-" + index;
+            const namaInput = document.querySelector(`input[name="nama"][form="${formId}"]`);
+            const nikInput = document.querySelector(`input[name="nik"][form="${formId}"]`);
+            const imgInput = document.getElementById("fileInput-" + index);
+            
+            if (namaInput) formData.append("nama", namaInput.value);
+            if (nikInput) formData.append("nik", nikInput.value);
+            formData.append("preview_type", type);
+            if (imgInput && imgInput.files.length > 0) {
+                formData.append("img", imgInput.files[0]);
+            }
+        }
+        
+        try {
+            const response = await fetch("/app/europa/list/preview", {
+                method: "POST",
+                body: formData
+            });
+            
+            if (!response.ok) throw new Error("Failed to fetch preview");
+            
+            const blob = await response.blob();
+            const imageUrl = URL.createObjectURL(blob);
+            
+            const imgEl = document.getElementById("previewPhotoImage");
+            imgEl.src = imageUrl;
+            imgEl.classList.remove("hidden");
+            document.getElementById("previewPhotoLoading").classList.add("hidden");
+        } catch (error) {
+            console.error("Preview error:", error);
+            alert("Gagal memuat preview foto. Pastikan data terisi dengan benar!");
+            closePreviewPhotoModal();
+        }
+    }
+
+    function triggerPreview(index) {
+        currentPreviewIndex = index;
+        openPreviewPhotoModal();
+        switchPreviewTab('dalam');
+    }
+
+    function updateRowState(index) {
+        // Desktop elements
+        const formId = "kandidatform-" + index;
+        const selectEl = document.querySelector(`select[name="tipepemesanan"][form="${formId}"]`);
+        const bpoInput = document.querySelector(`input[name="bpo"][form="${formId}"]`);
+        const processBtn = document.querySelector(`button[form="${formId}"][value="submit"]`);
+
+        // Mobile elements
+        const mobileFormId = "kandidatform-mobile-" + index;
+        const mobileForm = document.getElementById(mobileFormId);
+        const mobileSelectEl = mobileForm ? mobileForm.querySelector(`select[name="tipepemesanan"]`) : null;
+        const mobileBpoInput = mobileForm ? mobileForm.querySelector(`input[name="bpo"]`) : null;
+        const mobileProcessBtn = mobileForm ? mobileForm.querySelector(`button[name="action"][value="submit"]`) : null;
+
+        // Apply to desktop
+        if (selectEl) {
+            if (selectEl.value === "dummy") {
+                if (bpoInput) {
+                    bpoInput.removeAttribute("required");
+                    bpoInput.placeholder = "BPO (Opsional)";
+                    bpoInput.classList.remove("border-slate-700");
+                    bpoInput.classList.add("border-slate-650", "bg-slate-800/30", "text-slate-400");
+                }
+                if (processBtn) {
+                    processBtn.disabled = true;
+                    processBtn.setAttribute("title", "Tipe Dummy tidak dapat diproses (hanya draft)");
+                    processBtn.classList.add("opacity-30", "cursor-not-allowed");
+                    processBtn.classList.remove("hover:bg-orange-600", "hover:scale-105", "active:scale-95");
+                }
+            } else {
+                if (bpoInput) {
+                    bpoInput.setAttribute("required", "required");
+                    bpoInput.placeholder = "Masukkan BPO";
+                    bpoInput.classList.remove("border-slate-650", "bg-slate-800/30", "text-slate-400");
+                    bpoInput.classList.add("border-slate-700");
+                }
+                if (processBtn) {
+                    processBtn.disabled = false;
+                    processBtn.setAttribute("title", "Process kandidat ini ke history dan kirim email");
+                    processBtn.classList.remove("opacity-30", "cursor-not-allowed");
+                    processBtn.classList.add("hover:bg-orange-600", "hover:scale-105", "active:scale-95");
+                }
+            }
+        }
+
+        // Apply to mobile
+        if (mobileSelectEl) {
+            if (mobileSelectEl.value === "dummy") {
+                if (mobileBpoInput) {
+                    mobileBpoInput.removeAttribute("required");
+                    mobileBpoInput.placeholder = "BPO (Opsional)";
+                    mobileBpoInput.classList.remove("border-slate-700");
+                    mobileBpoInput.classList.add("border-slate-650", "bg-slate-800/30", "text-slate-400");
+                }
+                if (mobileProcessBtn) {
+                    mobileProcessBtn.disabled = true;
+                    mobileProcessBtn.setAttribute("title", "Tipe Dummy tidak dapat diproses (hanya draft)");
+                    mobileProcessBtn.classList.add("opacity-30", "cursor-not-allowed");
+                }
+            } else {
+                if (mobileBpoInput) {
+                    mobileBpoInput.setAttribute("required", "required");
+                    mobileBpoInput.placeholder = "Masukkan BPO";
+                    mobileBpoInput.classList.remove("border-slate-650", "bg-slate-800/30", "text-slate-400");
+                    mobileBpoInput.classList.add("border-slate-700");
+                }
+                if (mobileProcessBtn) {
+                    mobileProcessBtn.disabled = false;
+                    mobileProcessBtn.setAttribute("title", "Process kandidat ini ke history dan kirim email");
+                    mobileProcessBtn.classList.remove("opacity-30", "cursor-not-allowed");
+                }
+            }
+        }
+    }
+
+    function handleTipePemesananChange(selectEl, index) {
+        const formId = "kandidatform-" + index;
+        const mobileFormId = "kandidatform-mobile-" + index;
+        const nikInput = document.querySelector(`input[name="nik"][form="${formId}"]`);
+        const mobileForm = document.getElementById(mobileFormId);
+        const mobileNikInput = mobileForm ? mobileForm.querySelector(`input[name="nik"]`) : null;
+        
+        // Sync selects
+        if (selectEl.id && selectEl.id.includes("mobile")) {
+            const desktopSelect = document.querySelector(`select[name="tipepemesanan"][form="${formId}"]`);
+            if (desktopSelect) desktopSelect.value = selectEl.value;
+        } else {
+            const mobileSelect = mobileForm ? mobileForm.querySelector(`select[name="tipepemesanan"]`) : null;
+            if (mobileSelect) mobileSelect.value = selectEl.value;
+        }
+
+        if (selectEl.value === "dummy") {
+            const randNik = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+            if (nikInput && (!nikInput.value || nikInput.value.trim() === "")) {
+                nikInput.value = randNik;
+            }
+            if (mobileNikInput && (!mobileNikInput.value || mobileNikInput.value.trim() === "")) {
+                mobileNikInput.value = randNik;
+            }
+        } else {
+            if (nikInput) nikInput.value = "";
+            if (mobileNikInput) mobileNikInput.value = "";
+        }
+
+        updateRowState(index);
+    }
+
+    function formatManualNameInput(el) {
+        let val = el.value.toUpperCase();
+        let filtered = val.replace(/[^A-Z ]/g, '');
+        if (filtered !== val) {
+            alert("Hanya boleh memasukkan huruf (A-Z) dan spasi saja!");
+            val = filtered;
+        }
+        let parts = val.split(' ');
+        if (parts.length > 2) {
+            alert("Nama tidak boleh lebih dari 2 kata!");
+            val = parts.slice(0, 2).join(' ');
+        }
+        el.value = val;
+    }
+
+    function searchCandidates() {
+        const query = document.getElementById("searchPending").value.toLowerCase();
+        
+        // Search desktop table rows
+        const tableRows = document.querySelectorAll("#pendingTable tbody tr");
+        tableRows.forEach(row => {
+            const nameSpan = row.querySelector('td:first-child span.font-semibold');
+            const name = nameSpan ? nameSpan.textContent.toLowerCase() : "";
+            
+            const nikInput = row.querySelector('input[name="nik"]');
+            const nik = nikInput ? nikInput.value.toLowerCase() : "";
+            
+            if (row.querySelector('td[colspan="9"]')) return;
+            
+            if (name.includes(query) || nik.includes(query)) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+        
+        // Search mobile cards
+        const mobileCards = document.querySelectorAll("#pendingCardList form");
+        mobileCards.forEach(card => {
+            const nameH3 = card.querySelector('h3');
+            const name = nameH3 ? nameH3.textContent.toLowerCase() : "";
+            
+            const nikInput = card.querySelector('input[name="nik"]');
+            const nik = nikInput ? nikInput.value.toLowerCase() : "";
+            
+            if (name.includes(query) || nik.includes(query)) {
+                card.style.display = "";
+            } else {
+                card.style.display = "none";
+            }
+        });
     }
 </script>
+</div>
 {% endblock content %}

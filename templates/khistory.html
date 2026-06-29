@@ -1,336 +1,559 @@
 {% extends "layout.html" %}
 {% block content %}
-<h1 class="text-orange-500 text-center text-lg font-bold">ID Card Maker</h1>
-<img 
-  src="/static/logo.png" 
-  class="fixed top-4 left-4 w-14 h-14 z-50 bounce-soft opacity-80 hover:opacity-100 transition"
-/>
-<br>
-<br>
-<div class="flex items-center border-b border-slate-700 w-full">
 
-    <div class="flex space-x-1">
-        <a href="/kandidat/list"
-           class="px-2 py-1 text-gray-500 font-serif italic hover:text-orange-500 hover:bg-gray-100 rounded-t-md">
-            Pending
-        </a>
-        
-        <a href="/kandidat/history"
-            class="px-2 py-1 bg-white text-orange-500 font-serif italic font-semibold rounded-t-md border border-b-0 border-gray-300">
-            History
-        </a>
+<div class="max-w-[1400px] mx-auto px-6 py-8 relative">
+    <h1 class="text-orange-500 text-center text-2xl font-black tracking-tight mb-4">ID Card Maker</h1>
+    <img src="/app/europa/static/logo.png"
+        class="fixed top-4 left-4 w-14 h-14 z-50 bounce-soft opacity-80 hover:opacity-100 transition" />
+    <br>
+    <br>
+    <div class="flex flex-col md:flex-row md:items-center border-b border-slate-700 w-full pb-2 gap-3">
+        <div class="flex space-x-1 overflow-x-auto shrink-0">
+            <a href="/app/europa/list"
+                class="px-3 py-1.5 text-gray-400 font-serif italic hover:text-orange-500 hover:bg-gray-800 rounded-t-md text-sm transition-all duration-150 whitespace-nowrap">
+                Pending Submission
+            </a>
+            <a href="/app/europa/history"
+                class="px-3 py-1.5 bg-white text-orange-500 font-serif italic font-semibold rounded-t-md border border-b-0 border-gray-300 flex items-center gap-1.5 shadow-sm text-sm whitespace-nowrap">
+                History
+            </a>
+        </div>
+        <div class="md:ml-auto px-2 flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
+            <input type="text" id="search" name="search" placeholder="Search..." value="{{ search or '' }}"
+                class="border border-slate-700 bg-slate-800 px-4 py-1.5 rounded text-xs w-full sm:w-48 text-white focus:outline-none focus:ring-1 focus:ring-orange-500"
+                oninput="liveSearch()">
+
+            <div class="relative inline-block text-left whitespace-nowrap">
+                <button onclick="openBulkDeleteChoiceModal()"
+                    class="bg-red-600 hover:bg-red-750 text-white font-semibold text-xs px-3 py-1.5 rounded-lg shadow-md transition duration-150 transform hover:scale-105 active:scale-95 flex items-center gap-1.5">
+                    <span>🗑️</span> Hapus History
+                </button>
+            </div>
+        </div>
     </div>
-    <div class="ml-auto px-2">
-        <input 
-            type="text"
-            id="search" 
-            name="search" 
-            placeholder="Search..."
-            value="{{ search or '' }}"
-            class="border px-4 py-1 rounded text-xs w-56 "
-            oninput="liveSearch()"
-        >
-    </div>
 
-
-</div>
-<br>
+    <br>
     <div id="paginationText" class="text-xs text-gray-300 mb-2">
         {% if total_data > 0 %}
-        Showing 
-        {{ (page-1)* (limit|int if limit != 'all' else total_data) + 1 }} 
+        Showing
+        {{ (page-1)* (limit|int if limit != 'all' else total_data) + 1 }}
         -
-        {{ (page-1)*(limit|int if limit != 'all' else total_data) + kandidat_history|length }} 
+        {{ (page-1)*(limit|int if limit != 'all' else total_data) + kandidat_history|length }}
         of {{ total_data }} data
         {% else %}
         Showing 0 - 0 of 0 data
         {% endif %}
-        <select onchange="changeLimit(this.value)" 
-        class="border px-2 py-1 text-xs rounded ml-2 text-black">
-
-        <option value="15" {% if limit == "15" %}selected{% endif %}>15</option>
-        <option value="all" {% if limit == "all" %}selected{% endif %}>All</option>
-
-    </select>
+        <select onchange="changeLimit(this.value)" class="border px-2 py-1 text-xs rounded ml-2 text-black">
+            <option value="15" {% if limit=="15" %}selected{% endif %}>15</option>
+            <option value="all" {% if limit=="all" %}selected{% endif %}>All</option>
+        </select>
     </div>
-    <table class="mx-auto border-white text-white table-fixed w-full" id="historyTable">
-    <tr class="border-b border-white">
-        <th class="px-4 py-2 font-serif">Nama</th>
-        <th class="px-4 py-2 font-serif">NIK</th>
-        <th class="px-4 py-2 font-serif">
-            Ukuran Seragam
 
-            <span class="relative inline-block">
-                <button onclick="toggleFilter('filter-seragam')" class="ml-1 text-xs">
-                    🔽
-                </button>
+    <div
+        class="hidden md:block overflow-x-auto w-full border border-slate-700 rounded-xl bg-slate-900/40 backdrop-blur-md shadow-2xl mt-4">
+        <table class="w-full text-white min-w-0 border-collapse table-fixed" id="historyTable">
+            <thead>
+                <tr class="border-b border-slate-750 bg-slate-800/60 text-slate-300">
+                    <th
+                        class="px-2 py-2 font-serif text-[10px] xl:text-xs font-semibold tracking-wider text-left w-[14%]">
+                        Nama</th>
+                    <th
+                        class="px-1.5 py-2 font-serif text-[10px] xl:text-xs font-semibold tracking-wider text-left w-[12%]">
+                        NIK</th>
+                    <th
+                        class="px-1 py-2 font-serif text-[10px] xl:text-xs font-semibold tracking-wider text-center w-[7%]">
+                        Ukuran
+                        <span class="relative inline-block">
+                            <button onclick="toggleFilter('filter-seragam')"
+                                class="ml-0.5 text-[9px] xl:text-[10px]">🔽</button>
+                            <div id="filter-seragam"
+                                class="hidden absolute right-0 mt-1 bg-white text-black text-xs rounded shadow p-1 z-50 min-w-[100px]">
+                            </div>
+                        </span>
+                    </th>
+                    <th
+                        class="px-1 py-2 font-serif text-[10px] xl:text-xs font-semibold tracking-wider text-center w-[7%]">
+                        Gender
+                        <span class="relative inline-block">
+                            <button onclick="toggleFilter('filter-jenis-kelamin')"
+                                class="ml-0.5 text-[9px] xl:text-[10px]">🔽</button>
+                            <div id="filter-jenis-kelamin"
+                                class="hidden absolute right-0 mt-1 bg-white text-black text-xs rounded shadow p-1 z-50 min-w-[100px]">
+                            </div>
+                        </span>
+                    </th>
+                    <th
+                        class="px-1.5 py-2 font-serif text-[10px] xl:text-xs font-semibold tracking-wider text-left w-[13%]">
+                        Lokasi Kerja</th>
+                    <th
+                        class="px-1.5 py-2 font-serif text-[10px] xl:text-xs font-semibold tracking-wider text-center w-[10%]">
+                        Foto</th>
+                    <th
+                        class="px-1.5 py-2 font-serif text-[10px] xl:text-xs font-semibold tracking-wider text-left w-[12%]">
+                        BPO</th>
+                    <th
+                        class="px-1.5 py-2 font-serif text-[10px] xl:text-xs font-semibold tracking-wider text-left w-[11%]">
+                        Tipe
+                        <span class="relative inline-block ml-0.5">
+                            <button onclick="toggleFilter('filter-jenis-pemesanan')"
+                                class="text-[9px] xl:text-[10px] hover:text-orange-900 transition">🔽</button>
+                            <div id="filter-jenis-pemesanan"
+                                class="hidden absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-white text-black text-xs rounded-lg shadow-xl p-2 z-50 min-w-[120px] border border-gray-200">
+                            </div>
+                        </span>
+                    </th>
+                    <th
+                        class="px-1.5 py-2 font-serif text-[10px] xl:text-xs font-semibold tracking-wider text-left w-[11%] relative">
+                        Tanggal
+                        <span>
+                            <button onclick="toggleFilter('filter-tanggal')"
+                                class="text-[9px] xl:text-[10px]">🔽</button>
+                            <div id="filter-tanggal"
+                                class="hidden absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-white text-black text-xs rounded-lg shadow-xl p-3 z-50 min-w-[200px] border border-gray-200">
+                                <label class="block mb-1 font-semibold">From:</label>
+                                <input type="date" id="dateFrom" value="{{ date_from or '' }}"
+                                    class="w-full border rounded px-2 py-1 mb-2 text-black">
+                                <label class="block mb-1 font-semibold">To:</label>
+                                <input type="date" id="dateTo" value="{{ date_to or '' }}"
+                                    class="w-full border rounded px-2 py-1 mb-2 text-black">
+                                <button onclick="applyDateFilter()"
+                                    class="w-full bg-orange-500 text-white rounded py-1 mt-1 hover:bg-orange-600">Apply</button>
+                                <button onclick="applyDateFilter(true)"
+                                    class="w-full text-xs mt-1 underline text-slate-500">Reset</button>
+                            </div>
+                        </span>
+                    </th>
+                    <th
+                        class="px-1.5 py-2 font-serif text-[10px] xl:text-xs font-semibold tracking-wider text-center w-[13%]">
+                        Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for kandidathistory in kandidat_history %}
+                <tr class="border-b border-slate-800 bg-slate-900/20 hover:bg-slate-800/30 transition-colors">
+                    <td class="px-2 py-1.5 text-[10px] xl:text-xs text-left align-middle font-medium text-white truncate"
+                        title="{{ kandidathistory[1] }}">{{ kandidathistory[1] }}</td>
+                    <td class="px-1.5 py-1.5 text-[10px] xl:text-xs text-left align-middle text-slate-300 font-mono">{{
+                        kandidathistory[2] }}</td>
+                    <td class="px-1 py-1.5 text-[10px] xl:text-xs text-center align-middle text-slate-300">{{
+                        kandidathistory[3] }}</td>
+                    <td class="px-1 py-1.5 text-[10px] xl:text-xs text-center align-middle text-slate-300">{{
+                        kandidathistory[8] }}</td>
+                    <td class="px-1.5 py-1.5 text-[10px] xl:text-xs text-left align-middle text-slate-300 truncate"
+                        title="{{ kandidathistory[4] }}">{{ kandidathistory[4] }}</td>
+                    <td class="py-1.5 align-middle flex justify-center items-center">
+                        <img src="/app/europa/list/view_photo?img={{ kandidathistory[7] }}"
+                            class="w-5 h-5 xl:w-6 xl:h-6 object-cover rounded border border-slate-700 shadow-sm shrink-0">
+                    </td>
+                    <td class="px-1.5 py-1.5 text-[10px] xl:text-xs text-left align-middle text-slate-300 truncate"
+                        title="{{ kandidathistory[5] }}">{{ kandidathistory[5] }}</td>
+                    <td class="px-1.5 py-1.5 text-[10px] xl:text-xs text-left align-middle uppercase text-slate-300">{{
+                        kandidathistory[6] }}</td>
+                    <td class="px-1.5 py-1.5 text-[10px] xl:text-xs text-left align-middle text-slate-300">{{
+                        kandidathistory[9] }}</td>
+                    <td class="px-1.5 py-1.5 text-center align-middle">
+                        <div class="flex flex-wrap items-center justify-center gap-0.5 w-full mx-auto">
+                            <a href="/app/europa/list/view_idcard?img={{ kandidathistory[7] }}" target="_blank"
+                                class="bg-orange-500 hover:bg-orange-600 text-white text-[9px] xl:text-[10px] px-1 py-0.5 rounded shadow text-center font-semibold transition hover:scale-105 active:scale-95 flex items-center justify-center">
+                                ID Card
+                            </a>
+                            <a href="/app/europa/list/view_photo?img={{ kandidathistory[7] }}" target="_blank"
+                                class="bg-blue-500 hover:bg-blue-600 text-white text-[9px] xl:text-[10px] px-1 py-0.5 rounded shadow text-center font-semibold transition hover:scale-105 active:scale-95 flex items-center justify-center">
+                                Photo
+                            </a>
+                            <button type="button"
+                                onclick="confirmSingleDelete('{{ kandidathistory[0] }}', '{{ kandidathistory[1] }}')"
+                                class="bg-red-600 hover:bg-red-750 text-white text-[9px] xl:text-[10px] px-1 py-0.5 rounded shadow text-center font-semibold transition hover:scale-105 active:scale-95 cursor-pointer flex items-center justify-center">
+                                Hapus
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr class="border-b border-slate-800">
+                    <td colspan="10" class="px-4 py-8 text-center font-normal text-slate-400">Tidak ada data kandidat
+                        history.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
-                <div id="filter-seragam"
-                    class="hidden absolute right-0 mt-1 bg-white text-black text-xs rounded shadow p-1 z-50 min-w-[100px]">
+    <!-- Mobile & Zoom History Card Stack (shown on screens < 768px) -->
+    <div class="block md:hidden space-y-4 mt-4" id="historyCardList">
+        {% for kandidathistory in kandidat_history %}
+        <div class="bg-slate-900/60 border border-slate-700 rounded-xl p-4 shadow-xl space-y-3">
+            <!-- Candidate Title & Status -->
+            <div class="flex justify-between items-start border-b border-slate-800 pb-2">
+                <div>
+                    <h3 class="font-bold text-white text-base truncate max-w-[180px]">{{ kandidathistory[1] }}</h3>
+                    <span class="text-[9px] text-slate-400">Processed: {{ kandidathistory[9] }}</span>
                 </div>
-            </span>
-        </th>
-        <th class="px-4 py-2 font-serif">
-            Jenis Kelamin
-
-            <span class="relative inline-block">
-            <button onclick="toggleFilter('filter-jenis-kelamin')" class="ml-1 text-xs">
-                    🔽
-            </button>
-
-            <div id="filter-jenis-kelamin"
-                    class="hidden absolute right-0 mt-1 bg-white text-black text-xs rounded shadow p-1 z-50 min-w-[100px]">
-                </div>
-            </span>
-        
-        </th>
-        <th class="px-4 py-2 font-serif">Lokasi Kerja</th>
-        <th class="px-4 py-2 font-serif">Uploaded Foto</th>
-        <th class="px-4 py-2 nameInput font-serif">BPO</th>
-        <th class="px-4 py-2 font-serif">
-            Tipe Pemesanan
-
-            <span class="relative inline-block ml-1">
-                <button 
-                    onclick="toggleFilter('filter-jenis-pemesanan')" 
-                    class="text-xs hover:text-orange-900 transition">
-                    🔽
-                </button>
-
-                <div id="filter-jenis-pemesanan"
-                    class="hidden absolute left-1/2 -translate-x-1/2 top-full mt-2
-                            bg-white text-black text-xs
-                            rounded-lg shadow-xl p-2 z-50
-                            min-w-[120px] border border-gray-200">
-
-                </div>
-            </span>
-        </th>
-        <th class="px-4 py-2 font-serif relative">
-            Tanggal Diproses
-        <span>
-
-            <button onclick="toggleFilter('filter-tanggal')"
-            class="text-xs">
-                🔽
-            </button>
-
-            <div id="filter-tanggal" 
-            class="hidden absolute left-1/2 -translate-x-1/2 top-full mt-2
-                bg-white text-black text-xs
-                rounded-lg shadow-xl p-3 z-50
-                min-w-[200px] border border-gray-200">
-
-                <label class="block mb-1 font-semibold">From:</label>
-                <input type="date" id="dateFrom" value="{{ date_from or '' }}" class="w-full border rounded px-2 py-1 mb-2">
-
-                <label class="block mb-1 font-semibold">To:</label>
-                <input type="date" id="dateTo" value="{{ date_to or '' }}" class="w-full border rounded px-2 py-1 mb-2">
-
-                <button onclick="applyDateFilter()" 
-                    class="w-full bg-orange-500 text-white rounded py-1 mt-1 hover:bg-orange-600">
-                    Apply
-                </button>
-
-                <button onclick="applyDateFilter(true)" 
-                    class="w-full text-xs mt-1 underline">
-                    Reset
-                </button>
+                <span
+                    class="text-[9px] bg-emerald-600/80 text-white px-2 py-0.5 rounded font-semibold uppercase tracking-wider">Processed</span>
             </div>
 
-        </span>
-        </th>
-        <th class="px-4 py-2 font-serif">Action</th>
-    </tr>
-    {% for kandidathistory in kandidat_history %}
-    <tr class="border-b border-white">
-        <th class="px-4 py-2 font-normal text-sm">{{ kandidathistory[1] }}</th>
-        <th class="px-4 py-2 font-normal text-m">{{ kandidathistory[2] }}</th>
-        <th class="px-1 py-1 font-normal text-m">{{ kandidathistory[3] }}</th>
-        <th class="px-1 py-1 font-normal text-m">{{ kandidathistory[8] }}</th>
-        <th class="px-6 py-1 text-sm">{{ kandidathistory[4] }}</th>
-        <th class="flex justify-center items-center"> 
-            <img src="/static/idcardphoto/{{ kandidathistory[7] }}" class="w-20 h-20 object-cover rounded">
-        </th>
-        <th class="rounded px-2 py-1 font-normal text-sm">{{ kandidathistory[5] }}</th>
-        <th class="px-4 py-2 font-normal">{{ kandidathistory[6] }}</th>
-        <th class="px-4 py-2 font-normal">{{ kandidathistory[9] }}</th>
-        <th class="px-4 py-2 font-normal">
-            <a href="/static/idcardphoto/{{ kandidathistory[7] }}" target="_blank"
-            class="bg-orange-500 hover:bg-orange-600 text-white text-xs px-3 py-1 rounded-md shadow inline-block">
-                View ID Card
-            </a>
-        </th>
-    </tr>
-    {% else %}
-    <tr class="border-b border-white">
-        <th colspan="10" class="px-4 py-4 text-center font-normal">Tidak ada data kandidat.</th>
-    </tr>
-    {% endfor %}
-    </table>
+            <!-- Size & Gender Badges -->
+            <div class="flex gap-2">
+                <span class="text-[11px] bg-slate-850 px-2 py-1 rounded text-slate-300">👕 Ukuran: <strong
+                        class="text-white">{{ kandidathistory[3] }}</strong></span>
+                <span class="text-[11px] bg-slate-850 px-2 py-1 rounded text-slate-300">👤 Gender: <strong
+                        class="text-white">{{ kandidathistory[8] }}</strong></span>
+            </div>
+
+            <!-- Info Grid -->
+            <div class="grid grid-cols-1 gap-2 text-xs bg-slate-900/40 p-2.5 rounded-lg border border-slate-850/80">
+                <div><span class="text-slate-400">NIK:</span> <strong class="text-white font-mono">{{ kandidathistory[2]
+                        }}</strong></div>
+                <div><span class="text-slate-400">Lokasi Kerja:</span> <strong class="text-white">{{ kandidathistory[4]
+                        }}</strong></div>
+                <div><span class="text-slate-400">BPO:</span> <strong class="text-white">{{ kandidathistory[5] or '-'
+                        }}</strong></div>
+                <div><span class="text-slate-400">Tipe Pemesanan:</span> <strong class="text-white uppercase">{{
+                        kandidathistory[6] }}</strong></div>
+            </div>
+
+            <!-- Photo preview -->
+            <div class="flex items-center gap-3 bg-slate-850/40 p-2 rounded-lg border border-slate-750/50">
+                <img src="/app/europa/list/view_photo?img={{ kandidathistory[7] }}"
+                    class="w-10 h-10 object-cover rounded border border-slate-700 shadow-sm shrink-0">
+                <span class="text-[11px] text-slate-400">Uploaded Photo</span>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-wrap items-center justify-end gap-1.5 pt-2 border-t border-slate-800">
+                <a href="/app/europa/list/view_idcard?img={{ kandidathistory[7] }}" target="_blank"
+                    class="bg-orange-500 hover:bg-orange-600 text-white text-[11px] px-2.5 py-1 rounded shadow inline-block text-center font-semibold transition hover:scale-105 active:scale-95">
+                    ID Card
+                </a>
+                <a href="/app/europa/list/view_photo?img={{ kandidathistory[7] }}" target="_blank"
+                    class="bg-blue-500 hover:bg-blue-600 text-white text-[11px] px-2.5 py-1 rounded shadow w-full sm:w-auto text-center font-semibold transition hover:scale-105 active:scale-95">
+                    Photo
+                </a>
+                <button type="button"
+                    onclick="confirmSingleDelete('{{ kandidathistory[0] }}', '{{ kandidathistory[1] }}')"
+                    class="bg-red-600 hover:bg-red-750 text-white text-[11px] px-2.5 py-1 rounded shadow w-full sm:w-auto text-center font-semibold transition hover:scale-105 active:scale-95 cursor-pointer">
+                    Hapus
+                </button>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-8 text-slate-400 bg-slate-900/40 border border-slate-700 rounded-xl">
+            Tidak ada data kandidat history.
+        </div>
+        {% endfor %}
+    </div>
+
     <div id="paginationControls" class="flex justify-center mt-4 space-x-2">
-
-    {% if page > 1 %}
-    <button onclick="changePage({{ page-1 }})"
-        class="px-3 py-1 bg-gray-700 text-white hover:bg-gray-600 rounded">Previous</button>
-    {% endif %}
-
-    <span class="text-white text-sm flex items-center">Page {{ page }}</span>
-
-    {% if limit != 'all' and (page * (limit|int)) < total_data %}
-    <button onclick="changePage({{ page+1 }})"
-        class="px-3 py-1 bg-gray-700 text-white hover:bg-gray-600 rounded">Next</button>
-    {% endif %}
-
+        {% if page > 1 %}
+        <button onclick="changePage({{ page-1 }})"
+            class="px-3 py-1 bg-gray-700 text-white hover:bg-gray-600 rounded text-xs">Previous</button>
+        {% endif %}
+        <span class="text-white text-sm flex items-center">Page {{ page }}</span>
+        {% if limit != 'all' and (page * (limit|int)) < total_data %} <button onclick="changePage({{ page+1 }})"
+            class="px-3 py-1 bg-gray-700 text-white hover:bg-gray-600 rounded text-xs">Next</button>
+            {% endif %}
     </div>
 
     <script>
         let timeout = null;
 
-        function toggleFilter(id)
-        {
+        function toggleFilter(id) {
             document.getElementById(id).classList.toggle("hidden");
         }
 
-
         function applyFilter(field, value) {
             const url = new URL(window.location.href);
-
             if (value) {
                 url.searchParams.set(field, value);
             } else {
                 url.searchParams.delete(field);
             }
-            
-            url.searchParams.set("page", 1); // Reset to page 1 when filtering
-
+            url.searchParams.set("page", 1);
             window.location.href = url.toString();
         }
 
-        function liveSearch() 
-        {
+        function liveSearch() {
             clearTimeout(timeout);
-
-            timeout = setTimeout(async() => {
+            timeout = setTimeout(async () => {
                 const query = document.getElementById("search").value;
-
                 const url = new URL(window.location.href);
                 url.searchParams.set("search", query);
-                url.searchParams.set("page", 1); // Reset to page 1 on new search
+                url.searchParams.set("page", 1);
 
                 const response = await fetch(url.toString());
                 const html = await response.text();
-
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, "text/html");
 
-                const newTable = doc.querySelector("#historyTable");
-                document.querySelector("#historyTable").replaceWith(newTable);
-                
-                const newPaginationText = doc.querySelector("#paginationText");
-                if (newPaginationText && document.querySelector("#paginationText")) {
-                    document.querySelector("#paginationText").replaceWith(newPaginationText);
-                }
+                document.querySelector("#historyTable").replaceWith(doc.querySelector("#historyTable"));
+                document.querySelector("#paginationText").replaceWith(doc.querySelector("#paginationText"));
+                document.querySelector("#paginationControls").replaceWith(doc.querySelector("#paginationControls"));
 
-                const newPaginationControls = doc.querySelector("#paginationControls");
-                if (newPaginationControls && document.querySelector("#paginationControls")) {
-                    document.querySelector("#paginationControls").replaceWith(newPaginationControls);
-                }
-
-                // Also update the URL so if the user refreshes, they stay on the search term
                 window.history.pushState({}, '', url.toString());
-
                 buildFilters();
-
             }, 300);
-
         }
-        function buildFilters() 
-        {
-        
-       const sizes = ["S", "M", "L", "XL", "XXL", "XXXL"];
 
-        sizes.forEach(size => {
-            const div = document.createElement("div");
-            div.textContent = size;
-            div.className = "px-3 py-1 text-left hover:bg-gray-200 cursor-pointer";
-            div.onclick = () => applyFilter("sizebaju", size);
-            document.getElementById("filter-seragam").appendChild(div);
-        });
-
-        const allDiv = document.createElement("div");
-        allDiv.textContent = "All";
-        allDiv.className = "px-3 py-1 text-left font-bold hover:bg-gray-200 cursor-pointer border-t mt-1";
-        allDiv.onclick = () => applyFilter("sizebaju", "");
-        document.getElementById("filter-seragam").appendChild(allDiv);
-
-        const jeniskelamin = ["Pria", "Wanita"];
-        jeniskelamin.forEach(gender => {
-            const div = document.createElement("div");
-            div.textContent = gender;
-            div.className = "px-3 py-1 text-left hover:bg-gray-200 cursor-pointer";
-            div.onclick = () => applyFilter("jeniskelamin", gender);
-            document.getElementById("filter-jenis-kelamin").appendChild(div);
-        });
-        const allgenderDiv = document.createElement("div");
-        allgenderDiv.textContent = "All";
-        allgenderDiv.className = "px-3 py-1 text-left font-bold hover:bg-gray-200 cursor-pointer border-t mt-1";
-        allgenderDiv.onclick = () => applyFilter("jeniskelamin", "");
-        document.getElementById("filter-jenis-kelamin").appendChild(allgenderDiv);
-
-        const jenispemesanan = ["rusak", "baru", "hilang", "dummy"];
-        jenispemesanan.forEach(type => {
-            const div = document.createElement("div");
-            div.textContent = type;
-            div.className = "px-3 py-1 text-left hover:bg-gray-200 cursor-pointer";
-            div.onclick = () => applyFilter("jenispemesanan", type);
-            document.getElementById("filter-jenis-pemesanan").appendChild(div);
-        });
-        const alltypeDiv = document.createElement("div");
-        alltypeDiv.textContent = "All";
-        alltypeDiv.className = "px-3 py-1 text-left font-bold hover:bg-gray-200 cursor-pointer border-t mt-1";
-        alltypeDiv.onclick = () => applyFilter("jenispemesanan", "");
-        document.getElementById("filter-jenis-pemesanan").appendChild(alltypeDiv);
+        function buildFilters() {
+            // Build Seragam Filter
+            const seragamContainer = document.getElementById("filter-seragam");
+            if (seragamContainer) {
+                seragamContainer.innerHTML = "";
+                ["S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL", "6XL", "7XL", "8XL", "9XL", "10XL"].forEach(size => {
+                    const div = document.createElement("div");
+                    div.textContent = size;
+                    div.className = "px-3 py-1 text-left hover:bg-gray-200 cursor-pointer";
+                    div.onclick = () => applyFilter("sizebaju", size);
+                    seragamContainer.appendChild(div);
+                });
+                const allDiv = document.createElement("div");
+                allDiv.textContent = "All";
+                allDiv.className = "px-3 py-1 text-left font-bold hover:bg-gray-200 cursor-pointer border-t mt-1";
+                allDiv.onclick = () => applyFilter("sizebaju", "");
+                seragamContainer.appendChild(allDiv);
             }
+
+            // Build Gender Filter
+            const genderContainer = document.getElementById("filter-jenis-kelamin");
+            if (genderContainer) {
+                genderContainer.innerHTML = "";
+                ["Pria", "Wanita"].forEach(gender => {
+                    const div = document.createElement("div");
+                    div.textContent = gender;
+                    div.className = "px-3 py-1 text-left hover:bg-gray-200 cursor-pointer";
+                    div.onclick = () => applyFilter("jeniskelamin", gender);
+                    genderContainer.appendChild(div);
+                });
+            }
+
+            // Build Tipe Filter
+            const typeContainer = document.getElementById("filter-jenis-pemesanan");
+            if (typeContainer) {
+                typeContainer.innerHTML = "";
+                ["baru", "rusak", "hilang", "dummy"].forEach(type => {
+                    const div = document.createElement("div");
+                    div.textContent = type;
+                    div.className = "px-3 py-1 text-left hover:bg-gray-200 cursor-pointer";
+                    div.onclick = () => applyFilter("jenispemesanan", type);
+                    typeContainer.appendChild(div);
+                });
+            }
+        }
 
         function applyDateFilter(reset = false) {
             const url = new URL(window.location.href);
-
             if (reset) {
                 url.searchParams.delete("date_from");
                 url.searchParams.delete("date_to");
             } else {
                 const from = document.getElementById("dateFrom").value;
                 const to = document.getElementById("dateTo").value;
-
                 if (from) url.searchParams.set("date_from", from);
-                else url.searchParams.delete("date_from");
-
                 if (to) url.searchParams.set("date_to", to);
-                else url.searchParams.delete("date_to");
             }
-            
-            url.searchParams.set("page", 1); // Reset to page 1 when filtering by date
-
+            url.searchParams.set("page", 1);
             window.location.href = url.toString();
         }
 
-    document.addEventListener("DOMContentLoaded", buildFilters);
+        function changePage(page) {
+            const url = new URL(window.location.href);
+            url.searchParams.set("page", page);
+            window.location.href = url.toString();
+        }
 
+        function changeLimit(value) {
+            const url = new URL(window.location.href);
+            url.searchParams.set("limit", value);
+            url.searchParams.set("page", 1);
+            window.location.href = url.toString();
+        }
 
-function changePage(page) {
-    const url = new URL(window.location.href);
-    url.searchParams.set("page", page);
-    window.location.href = url.toString();
-}
-function changeLimit(value) {
-    const url = new URL(window.location.href);
-    url.searchParams.set("limit", value);
-    url.searchParams.set("page", 1); // reset to first page
-    window.location.href = url.toString();
-}
+        // --- History Deletion Helper Functions ---
 
+        function openBulkDeleteChoiceModal() {
+            const modal = document.getElementById("bulkDeleteChoiceModal");
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+            setTimeout(() => {
+                document.getElementById("bulkDeleteChoiceModalContent").classList.remove("scale-95");
+                document.getElementById("bulkDeleteChoiceModalContent").classList.add("scale-100");
+            }, 50);
+        }
 
+        function closeBulkDeleteChoiceModal() {
+            document.getElementById("bulkDeleteChoiceModalContent").classList.remove("scale-100");
+            document.getElementById("bulkDeleteChoiceModalContent").classList.add("scale-95");
+            setTimeout(() => {
+                const modal = document.getElementById("bulkDeleteChoiceModal");
+                modal.classList.add("hidden");
+                modal.classList.remove("flex");
+            }, 150);
+        }
+
+        function openHistDeleteModal() {
+            const modal = document.getElementById("historyDeleteModal");
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+            setTimeout(() => {
+                document.getElementById("historyDeleteModalContent").classList.remove("scale-95");
+                document.getElementById("historyDeleteModalContent").classList.add("scale-100");
+            }, 50);
+        }
+
+        function closeHistDeleteModal() {
+            document.getElementById("historyDeleteModalContent").classList.remove("scale-100");
+            document.getElementById("historyDeleteModalContent").classList.add("scale-95");
+            setTimeout(() => {
+                const modal = document.getElementById("historyDeleteModal");
+                modal.classList.add("hidden");
+                modal.classList.remove("flex");
+            }, 150);
+        }
+
+        function confirmSingleDelete(id, name) {
+            document.getElementById("histDeleteMode").value = "single";
+            document.getElementById("histDeleteId").value = id;
+
+            document.getElementById("histModalTitle").textContent = "Hapus Data History";
+            document.getElementById("histModalMsg").innerHTML = `Apakah Anda yakin ingin menghapus data history karyawan <strong class="text-white">${name}</strong>? Tindakan ini juga akan menghapus file ID Card secara permanen dari server.`;
+
+            openHistDeleteModal();
+        }
+
+        function confirmBulkDelete(mode) {
+            document.getElementById("histDeleteMode").value = mode;
+            document.getElementById("histDeleteId").value = "";
+
+            let title = "Konfirmasi Hapus";
+            let msg = "";
+
+            if (mode === 'all') {
+                title = "Hapus Semua History";
+                msg = "Apakah Anda yakin ingin menghapus <strong>SELURUH</strong> data history beserta semua file ID Card secara permanen dari server?";
+            } else if (mode === 'dummy') {
+                title = "Hapus History Tipe Dummy";
+                msg = "Apakah Anda yakin ingin menghapus semua history dengan <strong>tipe pemesanan DUMMY</strong> beserta semua file ID Card-nya secara permanen dari server?";
+            } else if (mode === 'others') {
+                title = "Hapus History Tipe Non-Dummy";
+                msg = "Apakah Anda yakin ingin menghapus semua history dengan <strong>tipe pemesanan selain DUMMY</strong> (Karyawan Baru, Rusak, Hilang) beserta semua file ID Card-nya secara permanen dari server?";
+            }
+
+            document.getElementById("histModalTitle").textContent = title;
+            document.getElementById("histModalMsg").innerHTML = msg;
+
+            closeBulkDeleteChoiceModal();
+            openHistDeleteModal();
+        }
+
+        document.addEventListener("DOMContentLoaded", buildFilters);
     </script>
 
+    <!-- Bulk Delete Choice Modal -->
+    <div id="bulkDeleteChoiceModal"
+        class="fixed inset-0 hidden items-center justify-center bg-black/60 z-50 transition-opacity duration-300">
+        <div class="bg-slate-800 border border-slate-700 text-white p-6 rounded-xl shadow-2xl text-center w-[90%] max-w-[620px] transform scale-95 transition-all duration-300"
+            id="bulkDeleteChoiceModalContent">
+            <div class="flex items-center justify-between border-b border-slate-700 pb-3 mb-4">
+                <h2 class="text-md font-bold text-red-500 flex items-center gap-1.5">
+                    <span>🗑️</span> Pilih Tipe Penghapusan History
+                </h2>
+                <button onclick="closeBulkDeleteChoiceModal()"
+                    class="text-gray-400 hover:text-white font-bold text-lg focus:outline-none">&times;</button>
+            </div>
+
+            <p class="text-xs text-slate-400 mb-5 leading-relaxed text-left">
+                Silakan pilih kategori data history yang ingin Anda hapus secara permanen dari server database dan
+                penyimpanan ID Card.
+            </p>
+
+            <!-- Choice Cards Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+
+                <!-- Card 1: Hapus Semua -->
+                <div
+                    class="bg-slate-900/50 hover:bg-slate-900/80 border border-red-500/20 hover:border-red-500/40 rounded-xl p-4 flex flex-col justify-between items-center text-center transition duration-200">
+                    <div class="flex flex-col items-center mb-3">
+                        <span class="text-2xl mb-1.5">🚨</span>
+                        <h3 class="text-xs font-bold text-red-400 uppercase tracking-wider">Semua Data</h3>
+                        <p class="text-[10px] text-slate-400 mt-1 leading-normal">Hapus seluruh data history beserta
+                            seluruh file ID Card.</p>
+                    </div>
+                    <button onclick="confirmBulkDelete('all')"
+                        class="w-full bg-red-650 hover:bg-red-750 text-white text-[10px] font-bold py-1.5 px-3 rounded shadow transition duration-150 hover:scale-105 active:scale-95 cursor-pointer">
+                        Hapus Semua
+                    </button>
+                </div>
+
+                <!-- Card 2: Hapus Dummy Saja -->
+                <div
+                    class="bg-slate-900/50 hover:bg-slate-900/80 border border-yellow-500/20 hover:border-yellow-500/40 rounded-xl p-4 flex flex-col justify-between items-center text-center transition duration-200">
+                    <div class="flex flex-col items-center mb-3">
+                        <span class="text-2xl mb-1.5">🧪</span>
+                        <h3 class="text-xs font-bold text-yellow-500 uppercase tracking-wider">Dummy Saja</h3>
+                        <p class="text-[10px] text-slate-400 mt-1 leading-normal">Hapus hanya data history dengan tipe
+                            pemesanan Dummy.</p>
+                    </div>
+                    <button onclick="confirmBulkDelete('dummy')"
+                        class="w-full bg-yellow-500 hover:bg-yellow-600 text-black text-[10px] font-bold py-1.5 px-3 rounded shadow transition duration-150 hover:scale-105 active:scale-95 cursor-pointer">
+                        Hapus Dummy
+                    </button>
+                </div>
+
+                <!-- Card 3: Hapus Non-Dummy -->
+                <div
+                    class="bg-slate-900/50 hover:bg-slate-900/80 border border-blue-500/20 hover:border-blue-500/40 rounded-xl p-4 flex flex-col justify-between items-center text-center transition duration-200">
+                    <div class="flex flex-col items-center mb-3">
+                        <span class="text-2xl mb-1.5">📁</span>
+                        <h3 class="text-xs font-bold text-blue-400 uppercase tracking-wider">Non-Dummy</h3>
+                        <p class="text-[10px] text-slate-400 mt-1 leading-normal">Hapus data selain Dummy (Baru, Rusak,
+                            Hilang).</p>
+                    </div>
+                    <button onclick="confirmBulkDelete('others')"
+                        class="w-full bg-blue-650 hover:bg-blue-750 text-white text-[10px] font-bold py-1.5 px-3 rounded shadow transition duration-150 hover:scale-105 active:scale-95 cursor-pointer">
+                        Hapus Non-Dummy
+                    </button>
+                </div>
+
+            </div>
+
+            <div class="flex justify-end pt-3 border-t border-slate-700">
+                <button type="button" onclick="closeBulkDeleteChoiceModal()"
+                    class="bg-gray-650 hover:bg-gray-750 text-white px-4 py-1.5 rounded-lg text-xs font-semibold shadow transition-all transform hover:scale-105 active:scale-95 cursor-pointer">
+                    Batal
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete History Confirmation Modal -->
+    <div id="historyDeleteModal"
+        class="fixed inset-0 hidden items-center justify-center bg-black/60 z-[60] transition-opacity duration-300">
+        <div class="bg-slate-800 border border-slate-700 text-white p-6 rounded-xl shadow-2xl text-center w-96 transform scale-95 transition-all duration-300"
+            id="historyDeleteModalContent">
+            <div
+                class="w-12 h-12 rounded-full bg-red-900/50 border border-red-500/30 flex items-center justify-center mx-auto mb-3">
+                <span class="text-xl text-red-500">⚠️</span>
+            </div>
+            <h2 class="text-md font-bold mb-1 text-red-500" id="histModalTitle">Konfirmasi Hapus</h2>
+            <p class="text-xs text-slate-400 mb-5 leading-relaxed" id="histModalMsg">Apakah Anda yakin ingin menghapus
+                data history ini?</p>
+
+            <form id="historyDeleteForm" method="POST" action="/app/europa/history/delete">
+                <input type="hidden" name="mode" id="histDeleteMode">
+                <input type="hidden" name="id" id="histDeleteId">
+                <div class="flex justify-center gap-3">
+                    <button type="submit"
+                        class="bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow transition-all transform hover:scale-105 active:scale-95 cursor-pointer">
+                        Ya, Hapus
+                    </button>
+                    <button type="button" onclick="closeHistDeleteModal()"
+                        class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow transition-all transform hover:scale-105 active:scale-95 cursor-pointer">
+                        Batal
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock content %}

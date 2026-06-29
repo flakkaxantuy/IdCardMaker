@@ -8,27 +8,17 @@
     class="flex flex-col items-center justify-center gap-6 min-h-screen bg-slate-900 overflow-x-hidden overflow-y-auto relative py-8">
 
     <!-- The ID Card Container with your custom template -->
-    <div style="background-image: url('/static/template.png');"
+    <div style="background-image: url('/app/europa/static/template.png');"
         class="relative shrink-0 w-[380px] h-[600px] bg-cover bg-center rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col items-center">
 
         <!-- The form overlay -->
-        <form action="/kandidat/form" method="POST" class="w-full h-full flex flex-col items-center relative"
+        <form action="/app/europa/form" method="POST" enctype="multipart/form-data" class="w-full h-full flex flex-col items-center relative"
             id="idCardForm">
 
             <!-- 1. The Photo Area -->
             <div
                 class="absolute top-[165px] w-[185px] h-[250px] group rounded flex items-center justify-center overflow-hidden">
-                <!-- Hidden file input -->
-                <!-- <input type="file" id="photoUpload" class="hidden" accept="image/*" onchange="previewImage(event)"> -->
-
-                <!-- The Photo Preview (hidden by default until uploaded) -->
-                <img id="photoPreview" class="absolute w-full h-full object-cover hidden z-10" />
-
-                <!-- Upload text that shows up when hovering over the silhouette -->
-                <!-- <div onclick="document.getElementById('photoUpload').click()"
-                    class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20">
-                    <span class="text-white font-bold bg-black/50 px-2 py-1 rounded">Upload Photo</span>
-                </div> -->
+                <!-- Photo upload completely disabled - only displaying background template.png -->
             </div>
 
             <!-- CHAT BUBBLE POPUP (Initial state is z-50 to sit above overlay) -->
@@ -129,8 +119,15 @@
                     <option value="M" class="text-black">M</option>
                     <option value="L" class="text-black">L</option>
                     <option value="XL" class="text-black">XL</option>
-                    <option value="XXL" class="text-black">XXL</option>
-                    <option value="XXXL" class="text-black">XXXL</option>
+                    <option value="2XL" class="text-black">2XL</option>
+                    <option value="3XL" class="text-black">3XL</option>
+                    <option value="4XL" class="text-black">4XL</option>
+                    <option value="5XL" class="text-black">5XL</option>
+                    <option value="6XL" class="text-black">6XL</option>
+                    <option value="7XL" class="text-black">7XL</option>
+                    <option value="8XL" class="text-black">8XL</option>
+                    <option value="9XL" class="text-black">9XL</option>
+                    <option value="10XL" class="text-black">10XL</option>
                 </select>
 
                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-white/70">
@@ -241,40 +238,40 @@
     }
 
     function formatNameInput(el) {
-        // Enforce uppercase
-        el.value = el.value.toUpperCase();
         let val = el.value;
-
-        // Prevent more than one space
-        let firstSpaceIndex = val.indexOf(' ');
-        if (firstSpaceIndex !== -1) {
-            let secondSpaceIndex = val.indexOf(' ', firstSpaceIndex + 1);
-            if (secondSpaceIndex !== -1) {
-                // A second space was typed or pasted! Strip it and everything after it.
-                val = val.substring(0, secondSpaceIndex);
-                el.value = val;
-
-                // Trigger the warning modal
-                showErrorModal();
-            }
+        
+        // Convert to uppercase
+        val = val.toUpperCase();
+        
+        // Filter out non-alphabetic, non-space characters
+        let filtered = val.replace(/[^A-Z ]/g, '');
+        if (filtered !== val) {
+            alert("Hanya boleh memasukkan huruf (A-Z) dan spasi saja!");
+            val = filtered;
         }
-
+        
+        // Enforce max 2 words (max 1 space)
+        let parts = val.split(' ');
+        if (parts.length > 2) {
+            val = parts.slice(0, 2).join(' ');
+            el.value = val;
+            showErrorModal();
+            return;
+        }
+        
+        el.value = val;
+        
         // Prepare to slice into bold / normal based on the single allowed space
         let spaceIndex = val.indexOf(' ');
-
         let first = "";
         let rest = "";
-
         if (spaceIndex === -1) {
-            // No spaces yet, everything is the first name
             first = val;
         } else {
-            // Found a space, split into first (bold) and rest (normal)
             first = val.substring(0, spaceIndex);
-            rest = val.substring(spaceIndex); // keep the space here to separate visually
+            rest = val.substring(spaceIndex);
         }
-
-        // Output to our display spans
+        
         document.getElementById("firstname").textContent = first;
         document.getElementById("restname").textContent = rest;
     }
